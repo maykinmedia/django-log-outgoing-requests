@@ -1,0 +1,9 @@
+include *.rst
+include LICENSE
+include log_outgoing_requests/py.typed
+recursive-include log_outgoing_requests *.html
+recursive-include log_outgoing_requests *.txt
+recursive-include log_outgoing_requests *.po
+global-exclude __pycache__
+global-exclude *.py[co]
+
