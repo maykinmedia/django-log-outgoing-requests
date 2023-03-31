@@ -7,6 +7,7 @@ Requirements
 
 * Python 3.7 or above
 * Django 3.2 or newer
+* requests
 
 Installation
 ============

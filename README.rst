@@ -10,7 +10,8 @@ django-log-outgoing-requests
 
 |python-versions| |django-versions| |pypi-version|
 
-Log and save outgoing requests made by `requests`_ library
+Log and save outgoing requests
+The current library logs only the requests made by the `requests`_ library
 
 .. contents::
 
@@ -19,7 +20,7 @@ Log and save outgoing requests made by `requests`_ library
 Features
 ========
 
-* Log outgoing requests made by `requests`_ library
+* Log outgoing requests made by requests library
 * Save logs in database
 * Overview of the saved logs in the admin page
 
