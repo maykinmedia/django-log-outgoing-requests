@@ -14,13 +14,9 @@ import os
 import sys
 from pathlib import Path
 
-import django
-
 _root_dir = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(_root_dir))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "testapp.settings")
-
-django.setup()
 
 
 # -- Project information -----------------------------------------------------
@@ -64,4 +60,11 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = []
 
-linkcheck_ignore = []
+linkcheck_ignore = [
+    # ignore until the library is published
+    r"https://github.com/maykinmedia/django-log-outgoing-requests/workflows*",
+    r"https://github.com/maykinmedia/django-log-outgoing-requests/actions*",
+    r"https://codecov.io/gh/maykinmedia/django-log-outgoing-requests*",
+    r"https://django-log-outgoing-requests.readthedocs.io*",
+    r"https://pypi.org/project/django-log-outgoing-requests*",
+]

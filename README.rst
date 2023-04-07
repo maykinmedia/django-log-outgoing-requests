@@ -10,7 +10,8 @@ django-log-outgoing-requests
 
 |python-versions| |django-versions| |pypi-version|
 
-Log and save outgoing requests made by requests library
+Log and save outgoing requests
+The current library logs only the requests made by the `requests`_ library
 
 .. contents::
 
@@ -19,7 +20,7 @@ Log and save outgoing requests made by requests library
 Features
 ========
 
-* Log outgoing requests
+* Log outgoing requests made by requests library
 * Save logs in database
 * Overview of the saved logs in the admin page
 
@@ -32,6 +33,7 @@ Requirements
 * Python 3.7 or above
 * setuptools 30.3.0 or above
 * Django 3.2 or newer
+* requests
 
 
 Install
@@ -101,6 +103,17 @@ To use this with your project you need to follow these steps:
 
         python manage.py migrate
 
+#.  Make some requests using requests library within the Django context, for example using ``python manage.py shell``
+
+    .. code-block:: console
+
+        import requests
+        res = requests.get("https://httpbin.org/json")
+        print(res.json())
+
+#.  Check stdout for the printable output, and navigate to ``/admin/log_outgoing_requests/outgoingrequestslog/`` to see 
+    the saved log records
+
 
 Local development
 =================
@@ -111,6 +124,8 @@ To install and develop the library locally, use:
 
     pip install -e --no-build-isolation .[tests,coverage,docs,pep8,release]
 
+
+.. _`requests`: https://pypi.org/project/requests/
 
 .. _`documentation`: https://docs.djangoproject.com/en/4.1/topics/logging/
 

@@ -2,7 +2,6 @@ import os
 
 from log_outgoing_requests.formatters import HttpFormatter
 
-
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 SECRET_KEY = "so-secret-i-cant-believe-you-are-looking-at-this"
