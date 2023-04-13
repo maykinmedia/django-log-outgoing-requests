@@ -60,11 +60,4 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = []
 
-linkcheck_ignore = [
-    # ignore until the library is published
-    r"https://github.com/maykinmedia/django-log-outgoing-requests/workflows*",
-    r"https://github.com/maykinmedia/django-log-outgoing-requests/actions*",
-    r"https://codecov.io/gh/maykinmedia/django-log-outgoing-requests*",
-    r"https://django-log-outgoing-requests.readthedocs.io*",
-    r"https://pypi.org/project/django-log-outgoing-requests*",
-]
+linkcheck_ignore = []
