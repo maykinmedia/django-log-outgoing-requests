@@ -11,6 +11,7 @@ django-log-outgoing-requests
 |python-versions| |django-versions| |pypi-version|
 
 Log and save outgoing requests
+
 The current library logs only the requests made by the `requests`_ library
 
 .. contents::
