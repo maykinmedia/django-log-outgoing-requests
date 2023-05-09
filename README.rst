@@ -97,6 +97,9 @@ To use this with your project you need to follow these steps:
         }
 
         LOG_OUTGOING_REQUESTS_DB_SAVE = True # save logs enabled/disabled based on the boolean value
+        LOG_OUTGOING_REQUESTS_SAVE_BODY = True # save request/response body
+        LOG_OUTGOING_REQUESTS_LOG_BODY_TO_STDOUT = True # log request/response body to STDOUT
+
 
 #.  Run the migrations
 
@@ -113,7 +116,7 @@ To use this with your project you need to follow these steps:
         print(res.json())
 
 #.  Check stdout for the printable output, and navigate to ``/admin/log_outgoing_requests/outgoingrequestslog/`` to see 
-    the saved log records
+    the saved log records. The settings for saving logs can by overridden under ``/admin/log_outgoing_requests/outgoingrequestslogconfig/``.
 
 
 Local development

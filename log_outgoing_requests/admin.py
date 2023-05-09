@@ -64,5 +64,11 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 
 @admin.register(OutgoingRequestsLogConfig)
 class OutgoingRequestsLogConfigAdmin(SingletonModelAdmin):
-    fields = ("save_to_db", "save_body",)
-    list_display = ("save_to_db", "save_body",)
+    fields = (
+        "save_to_db",
+        "save_body",
+    )
+    list_display = (
+        "save_to_db",
+        "save_body",
+    )

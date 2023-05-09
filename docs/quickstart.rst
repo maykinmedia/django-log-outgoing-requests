@@ -58,6 +58,9 @@ Installation
         }
 
         LOG_OUTGOING_REQUESTS_DB_SAVE = True # save logs enabled/disabled based on the boolean value
+        LOG_OUTGOING_REQUESTS_SAVE_BODY = True # save request/response body
+        LOG_OUTGOING_REQUESTS_LOG_BODY_TO_STDOUT = True # log request/response body to STDOUT
+
 
 #.  Run ``python manage.py migrate`` to create the necessary database tables.
 

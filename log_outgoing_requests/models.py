@@ -1,12 +1,11 @@
 from urllib.parse import urlparse
 
+from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from solo.models import SingletonModel
-
-from django.conf import settings
 
 
 class OutgoingRequestsLog(models.Model):
@@ -68,7 +67,7 @@ class OutgoingRequestsLog(models.Model):
         verbose_name=_("Request body"),
         blank=True,
         null=True,
-        help_text=_("The request body.")
+        help_text=_("The request body."),
     )
     res_headers = models.TextField(
         verbose_name=_("Response headers"),
@@ -80,7 +79,7 @@ class OutgoingRequestsLog(models.Model):
         verbose_name=_("Response body"),
         blank=True,
         null=True,
-        help_text=_("The response body.")
+        help_text=_("The response body."),
     )
     response_ms = models.PositiveIntegerField(
         verbose_name=_("Response in ms"),

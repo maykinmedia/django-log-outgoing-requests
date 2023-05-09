@@ -4,15 +4,20 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 
-
 ALLOWED_CONTENT_TYPES = [
-    "application/json", "multipart/form-data", "text/html", "text/plain", "", None,
+    "application/json",
+    "multipart/form-data",
+    "text/html",
+    "text/plain",
+    "",
+    None,
 ]
 
 
 class DatabaseOutgoingRequestsHandler(logging.Handler):
     def emit(self, record):
         from .models import OutgoingRequestsLogConfig
+
         config = OutgoingRequestsLogConfig.get_solo()
 
         if config.save_to_db or settings.LOG_OUTGOING_REQUESTS_DB_SAVE:
@@ -29,8 +34,8 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
             response_content_type = record.res.headers.get("Content-Type", "")
 
             if not (
-                request_content_type in ALLOWED_CONTENT_TYPES and
-                response_content_type in ALLOWED_CONTENT_TYPES
+                request_content_type in ALLOWED_CONTENT_TYPES
+                and response_content_type in ALLOWED_CONTENT_TYPES
             ):
                 return
 
@@ -59,8 +64,8 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
             }
 
             if config.save_body or settings.LOG_OUTGOING_REQUESTS_SAVE_BODY:
-                kwargs["req_body"] = record.req.body,
-                kwargs["res_body"] = record.res.json(),
+                kwargs["req_body"] = (record.req.body,)
+                kwargs["res_body"] = (record.res.json(),)
 
             OutgoingRequestsLog.objects.create(**kwargs)
 
