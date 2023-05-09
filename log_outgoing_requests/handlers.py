@@ -6,7 +6,7 @@ from django.conf import settings
 
 
 ALLOWED_CONTENT_TYPES = [
-    "application/json", "multipart/form-data", "text/html", "text/plain",
+    "application/json", "multipart/form-data", "text/html", "text/plain", "", None,
 ]
 
 

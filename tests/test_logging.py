@@ -4,7 +4,7 @@ import requests
 import requests_mock
 from freezegun import freeze_time
 
-from log_outgoing_requests.models import OutgoingRequestsLog
+from log_outgoing_requests.models import OutgoingRequestsLog, OutgoingRequestsLogConfig
 
 
 @requests_mock.Mocker()
@@ -30,6 +30,7 @@ class OutgoingRequestsLoggingTests(TestCase):
         self.assertEqual(logs.records[0].levelname, "DEBUG")
 
     @override_settings(LOG_OUTGOING_REQUESTS_DB_SAVE=True)
+    @override_settings(LOG_OUTGOING_REQUESTS_SAVE_BODY=True)
     def test_expected_data_is_saved_when_saving_enabled(self, m):
         methods = [
             ("GET", requests.get, m.get),
@@ -93,6 +94,7 @@ class OutgoingRequestsLoggingTests(TestCase):
                     request_log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                     "2021-10-18 13:00:00",
                 )
+                self.assertEqual(request_log.res_body[0], {"test": "data"})
                 self.assertIsNone(request_log.trace)
 
     @override_settings(LOG_OUTGOING_REQUESTS_DB_SAVE=True)
@@ -139,3 +141,197 @@ class OutgoingRequestsLoggingTests(TestCase):
         requests.get("http://example.com/some-path?version=2.0")
 
         self.assertFalse(OutgoingRequestsLog.objects.exists())
+
+    @override_settings(LOG_OUTGOING_REQUESTS_DB_SAVE=True)
+    @override_settings(LOG_OUTGOING_REQUESTS_SAVE_BODY=True)
+    def test_logging_disallowed_content_type_request(self, m):
+        methods = [
+            ("GET", requests.get, m.get),
+            ("POST", requests.post, m.post),
+            ("PUT", requests.put, m.put),
+            ("PATCH", requests.patch, m.patch),
+            ("DELETE", requests.delete, m.delete),
+            ("HEAD", requests.head, m.head),
+        ]
+
+        for method, func, mocked in methods:
+            with self.subTest():
+                mocked(
+                    "http://example.com/some-path?version=2.0",
+                    status_code=200,
+                    json={"test": "data"},
+                    request_headers={
+                        "Authorization": "test",
+                        "Content-Type": "video/mp4",
+                    },
+                    headers={
+                        "Date": "Tue, 21 Mar 2023 15:24:08 GMT",
+                        "Content-Type": "text/html",
+                    },
+                )
+
+                func(
+                    "http://example.com/some-path?version=2.0",
+                    headers={"Authorization": "test", "Content-Type": "video/mp4"},
+                )
+
+                request_log = OutgoingRequestsLog.objects.last()
+
+                self.assertIsNone(request_log)
+
+    @override_settings(LOG_OUTGOING_REQUESTS_DB_SAVE=True)
+    @override_settings(LOG_OUTGOING_REQUESTS_SAVE_BODY=True)
+    def test_logging_disallowed_content_type_response(self, m):
+        methods = [
+            ("GET", requests.get, m.get),
+            ("POST", requests.post, m.post),
+            ("PUT", requests.put, m.put),
+            ("PATCH", requests.patch, m.patch),
+            ("DELETE", requests.delete, m.delete),
+            ("HEAD", requests.head, m.head),
+        ]
+
+        for method, func, mocked in methods:
+            with self.subTest():
+                mocked(
+                    "http://example.com/some-path?version=2.0",
+                    status_code=200,
+                    json={"test": "data"},
+                    request_headers={
+                        "Authorization": "test",
+                        "Content-Type": "text/html",
+                    },
+                    headers={
+                        "Date": "Tue, 21 Mar 2023 15:24:08 GMT",
+                        "Content-Type": "video/mp4",
+                    },
+                )
+
+                func(
+                    "http://example.com/some-path?version=2.0",
+                    headers={"Authorization": "test", "Content-Type": "text/html"},
+                )
+
+                request_log = OutgoingRequestsLog.objects.last()
+
+                self.assertIsNone(request_log)
+
+    @override_settings(LOG_OUTGOING_REQUESTS_DB_SAVE=True)
+    @override_settings(LOG_OUTGOING_REQUESTS_SAVE_BODY=False)
+    def test_body_not_saved_when_setting_disabled(self, m):
+        methods = [
+            ("GET", requests.get, m.get),
+            ("POST", requests.post, m.post),
+            ("PUT", requests.put, m.put),
+            ("PATCH", requests.patch, m.patch),
+            ("DELETE", requests.delete, m.delete),
+            ("HEAD", requests.head, m.head),
+        ]
+
+        for method, func, mocked in methods:
+            with self.subTest():
+                mocked(
+                    "http://example.com/some-path?version=2.0",
+                    status_code=200,
+                    json={"test": "data"},
+                    request_headers={
+                        "Authorization": "test",
+                        "Content-Type": "text/html",
+                    },
+                    headers={
+                        "Date": "Tue, 21 Mar 2023 15:24:08 GMT",
+                        "Content-Type": "application/json",
+                    },
+                )
+
+                func(
+                    "http://example.com/some-path?version=2.0",
+                    headers={"Authorization": "test", "Content-Type": "text/html"},
+                )
+
+                request_log = OutgoingRequestsLog.objects.last()
+
+                self.assertIsNone(request_log.res_body)
+
+    @override_settings(LOG_OUTGOING_REQUESTS_DB_SAVE=False)
+    @override_settings(LOG_OUTGOING_REQUESTS_SAVE_BODY=False)
+    def test_admin_override_db_save(self, m):
+        config = OutgoingRequestsLogConfig.get_solo()
+        config.save_to_db = 1  # True
+        config.save()
+
+        methods = [
+            ("GET", requests.get, m.get),
+            ("POST", requests.post, m.post),
+            ("PUT", requests.put, m.put),
+            ("PATCH", requests.patch, m.patch),
+            ("DELETE", requests.delete, m.delete),
+            ("HEAD", requests.head, m.head),
+        ]
+
+        for method, func, mocked in methods:
+            with self.subTest():
+                mocked(
+                    "http://example.com/some-path?version=2.0",
+                    status_code=200,
+                    json={"test": "data"},
+                    request_headers={
+                        "Authorization": "test",
+                        "Content-Type": "text/html",
+                    },
+                    headers={
+                        "Date": "Tue, 21 Mar 2023 15:24:08 GMT",
+                        "Content-Type": "application/json",
+                    },
+                )
+
+                func(
+                    "http://example.com/some-path?version=2.0",
+                    headers={"Authorization": "test", "Content-Type": "text/html"},
+                )
+
+                request_log = OutgoingRequestsLog.objects.last()
+
+                self.assertIsNotNone(request_log)
+                self.assertIsNone(request_log.res_body)
+
+    @override_settings(LOG_OUTGOING_REQUESTS_DB_SAVE=True)
+    @override_settings(LOG_OUTGOING_REQUESTS_SAVE_BODY=False)
+    def test_admin_override_save_body(self, m):
+        config = OutgoingRequestsLogConfig.get_solo()
+        config.save_body = 1  # True
+        config.save()
+
+        methods = [
+            ("GET", requests.get, m.get),
+            ("POST", requests.post, m.post),
+            ("PUT", requests.put, m.put),
+            ("PATCH", requests.patch, m.patch),
+            ("DELETE", requests.delete, m.delete),
+            ("HEAD", requests.head, m.head),
+        ]
+
+        for method, func, mocked in methods:
+            with self.subTest():
+                mocked(
+                    "http://example.com/some-path?version=2.0",
+                    status_code=200,
+                    json={"test": "data"},
+                    request_headers={
+                        "Authorization": "test",
+                        "Content-Type": "text/html",
+                    },
+                    headers={
+                        "Date": "Tue, 21 Mar 2023 15:24:08 GMT",
+                        "Content-Type": "application/json",
+                    },
+                )
+
+                func(
+                    "http://example.com/some-path?version=2.0",
+                    headers={"Authorization": "test", "Content-Type": "text/html"},
+                )
+
+                request_log = OutgoingRequestsLog.objects.last()
+
+                self.assertIsNotNone(request_log.res_body)
