@@ -4,6 +4,10 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
+from solo.models import SingletonModel
+
+from django.conf import settings
+
 
 class OutgoingRequestsLog(models.Model):
     url = models.URLField(
@@ -60,11 +64,23 @@ class OutgoingRequestsLog(models.Model):
         null=True,
         help_text=_("The request headers."),
     )
+    req_body = models.TextField(
+        verbose_name=_("Request body"),
+        blank=True,
+        null=True,
+        help_text=_("The request body.")
+    )
     res_headers = models.TextField(
         verbose_name=_("Response headers"),
         blank=True,
         null=True,
         help_text=_("The response headers."),
+    )
+    res_body = models.JSONField(
+        verbose_name=_("Response body"),
+        blank=True,
+        null=True,
+        help_text=_("The response body.")
     )
     response_ms = models.PositiveIntegerField(
         verbose_name=_("Response in ms"),
@@ -86,6 +102,9 @@ class OutgoingRequestsLog(models.Model):
     class Meta:
         verbose_name = _("Outgoing Requests Log")
         verbose_name_plural = _("Outgoing Requests Logs")
+        permissions = [
+            ("can_view_logs", "Can view outgoing request logs"),
+        ]
 
     def __str__(self):
         return ("{hostname} at {date}").format(
@@ -99,3 +118,35 @@ class OutgoingRequestsLog(models.Model):
     @property
     def query_params(self):
         return self.url_parsed.query
+
+
+class OutgoingRequestsLogConfig(SingletonModel):
+    class SaveLogsChoices(models.IntegerChoices):
+        NO = 0, _("No")
+        YES = 1, _("Yes")
+
+        __empty__ = _("Use default")
+
+    save_to_db = models.IntegerField(
+        _("Save logs to database"),
+        choices=SaveLogsChoices.choices,
+        blank=True,
+        null=True,
+        help_text=_(
+            "Whether request logs should be saved to the database (default: {default})"
+        ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE),
+    )
+    save_body = models.IntegerField(
+        _("Save request + response body"),
+        choices=SaveLogsChoices.choices,
+        blank=True,
+        null=True,
+        help_text=_(
+            "Wheter the body of the request and response should be logged (default: "
+            "{default}). This option is ignored if 'Save Logs to database' is set to "
+            "False."
+        ).format(default=settings.LOG_OUTGOING_REQUESTS_SAVE_BODY),
+    )
+
+    class Meta:
+        verbose_name = _("Outgoing Requests Logs Configuration")

@@ -16,6 +16,7 @@ DATABASES = {
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",
+    "django.contrib.messages",
     "django.contrib.sessions",
     "django.contrib.admin",
     "log_outgoing_requests",
@@ -91,6 +92,7 @@ LOGGING = {
 # LOG OUTGOING REQUESTS
 #
 LOG_OUTGOING_REQUESTS_DB_SAVE = True
+LOG_OUTGOING_REQUESTS_SAVE_BODY = False
 
 
 ROOT_URLCONF = "testapp.urls"

@@ -1,7 +1,14 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
-from .models import OutgoingRequestsLog
+from solo.admin import SingletonModelAdmin
+
+from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
+
+
+@admin.display(description="Response body")
+def response_body(obj):
+    return f"{obj}".upper()
 
 
 @admin.register(OutgoingRequestsLog)
@@ -19,6 +26,8 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "res_content_type",
         "req_headers",
         "res_headers",
+        "req_body",
+        "res_body",
         "trace",
     )
     readonly_fields = fields
@@ -31,7 +40,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "response_ms",
         "timestamp",
     )
-    list_filter = ("method", "status_code", "hostname")
+    list_filter = ("method", "status_code", "hostname", "timestamp")
     search_fields = ("url", "params", "hostname")
     date_hierarchy = "timestamp"
     show_full_result_count = False
@@ -46,3 +55,14 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         return obj.query_params
 
     query_params.short_description = _("Query parameters")
+
+    class Media:
+        css = {
+            "all": ("log_outgoing_requests/css/admin.css",),
+        }
+
+
+@admin.register(OutgoingRequestsLogConfig)
+class OutgoingRequestsLogConfigAdmin(SingletonModelAdmin):
+    fields = ("save_to_db", "save_body",)
+    list_display = ("save_to_db", "save_body",)
