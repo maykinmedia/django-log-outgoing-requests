@@ -1,5 +1,6 @@
 import os
 
+from log_outgoing_requests.datastructures import ContentType
 from log_outgoing_requests.formatters import HttpFormatter
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -92,7 +93,16 @@ LOGGING = {
 # LOG OUTGOING REQUESTS
 #
 LOG_OUTGOING_REQUESTS_DB_SAVE = True
-LOG_OUTGOING_REQUESTS_SAVE_BODY = False
+LOG_OUTGOING_REQUESTS_DB_SAVE_BODY = True
+LOG_OUTGOING_REQUESTS_CONTENT_TYPES = [
+    ContentType(pattern="application/json", default_encoding="utf-8"),
+    ContentType(pattern="application/soap+xml", default_encoding="utf-8"),
+    ContentType(pattern="application/xml", default_encoding="utf-8"),
+    ContentType(pattern="text/xml", default_encoding="iso-8859-1"),
+    ContentType(pattern="text/*", default_encoding="utf-8"),
+]
+LOG_OUTGOING_REQUESTS_EMIT_BODY = True
+LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 524_288  # 0.5 MB
 
 
 ROOT_URLCONF = "testapp.urls"

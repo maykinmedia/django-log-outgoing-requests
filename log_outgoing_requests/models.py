@@ -1,18 +1,23 @@
+import logging
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from solo.models import SingletonModel
+from solo.models import SingletonModel  # type: ignore
+
+from .constants import SaveLogsChoice
+
+logger = logging.getLogger(__name__)
 
 
 class OutgoingRequestsLog(models.Model):
     url = models.URLField(
         verbose_name=_("URL"),
         max_length=1000,
-        blank=True,
         default="",
         help_text=_("The url of the outgoing request."),
     )
@@ -22,8 +27,7 @@ class OutgoingRequestsLog(models.Model):
         verbose_name=_("Hostname"),
         max_length=255,
         default="",
-        blank=True,
-        help_text=_("The hostname part of the url."),
+        help_text=_("The netloc/hostname part of the url."),
     )
     params = models.TextField(
         verbose_name=_("Parameters"),
@@ -39,7 +43,6 @@ class OutgoingRequestsLog(models.Model):
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=10,
-        default="",
         blank=True,
         help_text=_("The type of request method."),
     )
@@ -47,44 +50,45 @@ class OutgoingRequestsLog(models.Model):
         verbose_name=_("Request content type"),
         max_length=50,
         default="",
-        blank=True,
         help_text=_("The content type of the request."),
     )
     res_content_type = models.CharField(
         verbose_name=_("Response content type"),
         max_length=50,
         default="",
-        blank=True,
         help_text=_("The content type of the response."),
     )
     req_headers = models.TextField(
         verbose_name=_("Request headers"),
-        blank=True,
-        null=True,
+        default="",
         help_text=_("The request headers."),
-    )
-    req_body = models.TextField(
-        verbose_name=_("Request body"),
-        blank=True,
-        null=True,
-        help_text=_("The request body."),
     )
     res_headers = models.TextField(
         verbose_name=_("Response headers"),
-        blank=True,
-        null=True,
+        default="",
         help_text=_("The response headers."),
     )
-    res_body = models.JSONField(
+    req_body = models.BinaryField(
+        verbose_name=_("Request body"),
+        default=b"",
+        help_text=_("The request body."),
+    )
+    res_body = models.BinaryField(
         verbose_name=_("Response body"),
-        blank=True,
-        null=True,
+        default=b"",
         help_text=_("The response body."),
+    )
+    req_body_encoding = models.CharField(
+        max_length=24,
+        default="",
+    )
+    res_body_encoding = models.CharField(
+        max_length=24,
+        default="",
     )
     response_ms = models.PositiveIntegerField(
         verbose_name=_("Response in ms"),
         default=0,
-        blank=True,
         help_text=_("This is the response time in ms."),
     )
     timestamp = models.DateTimeField(
@@ -93,17 +97,13 @@ class OutgoingRequestsLog(models.Model):
     )
     trace = models.TextField(
         verbose_name=_("Trace"),
-        blank=True,
-        null=True,
+        default="",
         help_text=_("Text providing information in case of request failure."),
     )
 
     class Meta:
         verbose_name = _("Outgoing Requests Log")
         verbose_name_plural = _("Outgoing Requests Logs")
-        permissions = [
-            ("can_view_logs", "Can view outgoing request logs"),
-        ]
 
     def __str__(self):
         return ("{hostname} at {date}").format(
@@ -118,34 +118,86 @@ class OutgoingRequestsLog(models.Model):
     def query_params(self):
         return self.url_parsed.query
 
+    @cached_property
+    def request_body_decoded(self) -> str:
+        """
+        Decoded request body for use in template.
+
+        If the stored encoding is not found (either because it is empty or because of
+        spelling errors etc.), we decode "blindly", replacing chars that could not be
+        decoded.
+        """
+        try:
+            decoded = str(self.req_body, self.res_body_encoding, errors="replace")
+        except LookupError:
+            decoded = str(self.req_body, errors="replace")
+        return decoded
+
+    @cached_property
+    def response_body_decoded(self) -> str:
+        """
+        Decoded response body for use in template.
+
+        If the stored encoding is not found (either because it is empty or because of
+        spelling errors etc.), we decode "blindly", replacing chars that could not be
+        decoded.
+        """
+        try:
+            decoded = str(self.res_body, self.res_body_encoding, errors="replace")
+        except LookupError:
+            decoded = str(self.res_body, errors="replace")
+        return decoded
+
+
+def get_default_max_content_length():
+    """
+    Get default value for max content length from settings.
+    """
+    return settings.LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH
+
 
 class OutgoingRequestsLogConfig(SingletonModel):
-    class SaveLogsChoices(models.IntegerChoices):
-        NO = 0, _("No")
-        YES = 1, _("Yes")
+    """Configuration options for request logging."""
 
-        __empty__ = _("Use default")
-
-    save_to_db = models.IntegerField(
+    save_to_db = models.CharField(
         _("Save logs to database"),
-        choices=SaveLogsChoices.choices,
-        blank=True,
-        null=True,
-        help_text=_(
-            "Whether request logs should be saved to the database (default: {default})"
-        ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE),
+        max_length=11,
+        choices=SaveLogsChoice.choices,
+        default=SaveLogsChoice.use_default,
     )
-    save_body = models.IntegerField(
+    save_body = models.CharField(
         _("Save request + response body"),
-        choices=SaveLogsChoices.choices,
-        blank=True,
-        null=True,
-        help_text=_(
-            "Wheter the body of the request and response should be logged (default: "
-            "{default}). This option is ignored if 'Save Logs to database' is set to "
-            "False."
-        ).format(default=settings.LOG_OUTGOING_REQUESTS_SAVE_BODY),
+        max_length=11,
+        choices=SaveLogsChoice.choices,
+        default=SaveLogsChoice.use_default,
     )
+    max_content_length = models.IntegerField(
+        _("Maximal content size"),
+        validators=[MinValueValidator(0)],
+        default=get_default_max_content_length,
+        help_text=_(
+            "The maximal size of the request/response content (in bytes). "
+            "If 'Require content length' is not checked, this setting has no effect."
+        ),
+    )
+
+    @property
+    def save_logs_enabled(self):
+        """
+        Use configuration option or settings to determine if logs should be saved.
+        """
+        if self.save_to_db == SaveLogsChoice.use_default:
+            return settings.LOG_OUTGOING_REQUESTS_DB_SAVE
+        return self.save_to_db == SaveLogsChoice.yes
+
+    @property
+    def save_body_enabled(self):
+        """
+        Use configuration option or settings to determine if log bodies should be saved.
+        """
+        if self.save_body == SaveLogsChoice.use_default:
+            return settings.LOG_OUTGOING_REQUESTS_DB_SAVE_BODY
+        return self.save_body == SaveLogsChoice.yes
 
     class Meta:
-        verbose_name = _("Outgoing Requests Logs Configuration")
+        verbose_name = _("Outgoing Requests Log Configuration")

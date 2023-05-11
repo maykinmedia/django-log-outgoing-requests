@@ -58,8 +58,16 @@ Installation
         }
 
         LOG_OUTGOING_REQUESTS_DB_SAVE = True # save logs enabled/disabled based on the boolean value
-        LOG_OUTGOING_REQUESTS_SAVE_BODY = True # save request/response body
-        LOG_OUTGOING_REQUESTS_LOG_BODY_TO_STDOUT = True # log request/response body to STDOUT
+        LOG_OUTGOING_REQUESTS_DB_SAVE_BODY = True # save request/response body
+        LOG_OUTGOING_REQUESTS_EMIT_BODY = True # log request/response body
+        LOG_OUTGOING_REQUESTS_CONTENT_TYPES = [
+                "text/*",
+                "application/json",
+                "application/xml",
+                "application/soap+xml",
+        ] # save request/response bodies with matching content type
+        LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 524_288  # maximal size (in bytes) for the request/response body
+        LOG_OUTGOING_REQUESTS_LOG_BODY_TO_STDOUT = True
 
 
 #.  Run ``python manage.py migrate`` to create the necessary database tables.

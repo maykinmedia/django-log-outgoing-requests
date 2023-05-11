@@ -1,14 +1,12 @@
+from django import forms
+from django.conf import settings
 from django.contrib import admin
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 
-from solo.admin import SingletonModelAdmin
+from solo.admin import SingletonModelAdmin  # type: ignore
 
 from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
-
-
-@admin.display(description="Response body")
-def response_body(obj):
-    return f"{obj}".upper()
 
 
 @admin.register(OutgoingRequestsLog)
@@ -26,8 +24,6 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "res_content_type",
         "req_headers",
         "res_headers",
-        "req_body",
-        "res_body",
         "trace",
     )
     readonly_fields = fields
@@ -40,10 +36,11 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "response_ms",
         "timestamp",
     )
-    list_filter = ("method", "status_code", "hostname", "timestamp")
+    list_filter = ("method", "timestamp", "status_code", "hostname")
     search_fields = ("url", "params", "hostname")
     date_hierarchy = "timestamp"
     show_full_result_count = False
+    change_form_template = "log_outgoing_requests/change_form.html"
 
     def has_add_permission(self, request):
         return False
@@ -54,7 +51,18 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     def query_params(self, obj):
         return obj.query_params
 
-    query_params.short_description = _("Query parameters")
+    def change_view(self, request, object_id, extra_context=None):
+        """
+        Add log object to to context for use in template.
+        """
+        log = get_object_or_404(OutgoingRequestsLog, id=object_id)
+
+        extra_context = extra_context or {}
+        extra_context["log"] = log
+
+        return super().change_view(request, object_id, extra_context=extra_context)
+
+    query_params.short_description = _("Query parameters")  # type: ignore
 
     class Media:
         css = {
@@ -62,13 +70,22 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         }
 
 
+class ConfigAdminForm(forms.ModelForm):
+    class Meta:
+        model = OutgoingRequestsLogConfig
+        fields = "__all__"
+        widgets = {"allowed_content_types": forms.CheckboxSelectMultiple}
+        help_texts = {
+            "save_to_db": _(
+                "Whether request logs should be saved to the database (default: {default})."
+            ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE),
+            "save_body": _(
+                "Wheter the body of the request and response should be logged (default: "
+                "{default})."
+            ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE_BODY),
+        }
+
+
 @admin.register(OutgoingRequestsLogConfig)
 class OutgoingRequestsLogConfigAdmin(SingletonModelAdmin):
-    fields = (
-        "save_to_db",
-        "save_body",
-    )
-    list_display = (
-        "save_to_db",
-        "save_body",
-    )
+    form = ConfigAdminForm

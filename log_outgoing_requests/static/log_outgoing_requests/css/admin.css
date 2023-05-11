@@ -1,6 +1,9 @@
 .field-res_body {
-	display: inline-block;
-	width: 40rem;
-	font-family: monospace;
-	line-height: 1.5rem;
+  display: inline-block;
+  width: var(--dlor-body-width, 40rem);
+  font-family: monospace;
+  line-height: 1.5rem;
+}
+input[name="max_content_length"] {
+  width: 7.25em;
 }
