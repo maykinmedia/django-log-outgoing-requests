@@ -29,12 +29,7 @@ def is_request_log_record(record: AnyLogRecord) -> bool:
 class DatabaseOutgoingRequestsHandler(logging.Handler):
     def emit(self, record: AnyLogRecord):
         from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
-        from .utils import (
-            check_content_length,
-            check_content_type,
-            get_default_encoding,
-            parse_content_type_header,
-        )
+        from .utils import process_body
 
         config = cast(OutgoingRequestsLogConfig, OutgoingRequestsLogConfig.get_solo())
         if not config.save_logs_enabled:
@@ -69,26 +64,26 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
 
         if config.save_body_enabled:
             # check request
-            content_type, encoding = parse_content_type_header(record.req)
-            if check_content_type(content_type) and check_content_length(
-                record.req, config
-            ):
-                kwargs["req_content_type"] = content_type
-                kwargs["req_body"] = record.req.body or b""
-                kwargs["req_body_encoding"] = encoding or get_default_encoding(
-                    content_type
+            processed_request_body = process_body(record.req, config)
+            if processed_request_body.allow_saving_to_db:
+                kwargs.update(
+                    {
+                        "req_content_type": processed_request_body.content_type,
+                        "req_body": processed_request_body.content,
+                        "req_body_encoding": processed_request_body.encoding,
+                    }
                 )
 
             # check response
-            content_type, encoding = parse_content_type_header(record.res)
-            if check_content_type(content_type) and check_content_length(
-                record.res, config
-            ):
-                kwargs["res_content_type"] = content_type
-                kwargs["res_body"] = record.res.content or b""
-                kwargs[
-                    "res_body_encoding"
-                ] = record.res.encoding or get_default_encoding(content_type)
+            processed_response_body = process_body(record.res, config)
+            if processed_response_body.allow_saving_to_db:
+                kwargs.update(
+                    {
+                        "res_content_type": processed_response_body.content_type,
+                        "res_body": processed_response_body.content,
+                        "res_body_encoding": processed_response_body.encoding,
+                    }
+                )
 
         OutgoingRequestsLog.objects.create(**kwargs)
 

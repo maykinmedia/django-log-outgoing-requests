@@ -8,16 +8,41 @@ from django.conf import settings
 from requests import PreparedRequest, Response
 
 from .compat import parse_header_parameters
-from .datastructures import ContentType
+from .datastructures import ContentType, ProcessedBody
 from .models import OutgoingRequestsLogConfig
 
 logger = logging.getLogger(__name__)
+
+HttpObj = Union[PreparedRequest, Response]
+
+
+def process_body(http_obj: HttpObj, config: OutgoingRequestsLogConfig) -> ProcessedBody:
+    """
+    Process a request or response body by parsing the meta information.
+    """
+    content_type, encoding = parse_content_type_header(http_obj)
+    if not encoding:
+        encoding = get_default_encoding(content_type)
+    allow_persisting = check_content_type(content_type) and check_content_length(
+        http_obj, config=config
+    )
+    content = _get_body(http_obj) if allow_persisting else b""
+    return ProcessedBody(
+        allow_saving_to_db=allow_persisting,
+        content=content or b"",
+        content_type=content_type,
+        encoding=encoding,
+    )
 
 
 #
 # Handler utilities
 #
-def _get_content_length(http_obj: Union[PreparedRequest, Response]) -> str:
+def _get_body(http_obj: HttpObj) -> Union[bytes, str, None]:
+    return http_obj.content if isinstance(http_obj, Response) else http_obj.body
+
+
+def _get_content_length(http_obj: HttpObj) -> str:
     """
     Try to determine the size of a request/response content.
 
@@ -29,7 +54,7 @@ def _get_content_length(http_obj: Union[PreparedRequest, Response]) -> str:
     content_length = http_obj.headers.get("Content-Length", "")
 
     if not content_length:
-        body = http_obj.content if isinstance(http_obj, Response) else http_obj.body
+        body = _get_body(http_obj)
         if body is not None:
             content_length = str(len(body))
 
@@ -37,7 +62,7 @@ def _get_content_length(http_obj: Union[PreparedRequest, Response]) -> str:
 
 
 def check_content_length(
-    http_obj: Union[PreparedRequest, Response],
+    http_obj: HttpObj,
     config: "OutgoingRequestsLogConfig",
 ) -> bool:
     """
@@ -62,9 +87,7 @@ def check_content_length(
     return int(content_length) <= max_content_length
 
 
-def parse_content_type_header(
-    http_obj: Union[PreparedRequest, Response]
-) -> Tuple[str, str]:
+def parse_content_type_header(http_obj: HttpObj) -> Tuple[str, str]:
     """
     Wrapper around Django's `parse_header`.
 
