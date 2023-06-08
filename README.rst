@@ -3,16 +3,22 @@ django-log-outgoing-requests
 
 :Version: 0.2.0
 :Source: https://github.com/maykinmedia/django-log-outgoing-requests
-:Keywords: logging
-:PythonVersion: 3.9
+:Keywords: logging, django, requests
+:PythonVersion: 3.8+
 
 |build-status| |code-quality| |black| |coverage| |docs|
 
 |python-versions| |django-versions| |pypi-version|
 
-Log and save outgoing requests
+A logging solution for outgoing requests made via the requests_ library.
 
-The current library logs only the requests made by the `requests`_ library
+django-log-outgoing-requests provides a custom formatter and handler for the Python
+``logging`` standard library. It integrates with existing logging configuration and
+provides (configuration) options to save the log records to the database.
+
+You would typically use this as a tool to debug integration with external HTTP services,
+via log shipping solutions and/or the Django admin.
+
 
 .. contents::
 
@@ -21,112 +27,16 @@ The current library logs only the requests made by the `requests`_ library
 Features
 ========
 
-* Log outgoing requests made by requests library
-* Save logs in database
-* Overview of the saved logs in the admin page
-
-Installation
-============
-
-Requirements
-------------
-
-* Python 3.7 or above
-* setuptools 30.3.0 or above
-* Django 3.2 or newer
-* requests
-
-
-Install
--------
-
-.. code-block:: bash
-
-    pip install django-log-outgoing-requests
-
+* log formatter for a readable representation of a request and response
+* log handler to persist relevant log records to the database
+* configurable via Django settings
+* runtime configuration in the admin, overriding defaults from Django settings.
 
 Usage
 =====
 
-To use this with your project you need to follow these steps:
-
-#.  Add **Django Log Outgoing Requests** to ``INSTALLED_APPS`` in your Django 
-    project's ``settings.py``:
-
-    .. code-block:: python
-
-        INSTALLED_APPS = (
-          # ...,
-          "log_outgoing_requests"
-        )
-
-#.  Update your ``settings.py`` file with the following (if you haven't defined 
-    logging yet, you can see the Django's `documentation`_):
-
-    .. code-block:: python
-
-        from log_outgoing_requests.formatters import HttpFormatter
-
-
-        LOGGING = {
-            #...,
-            "formatters": {
-                #...,
-                "outgoing_requests": {"()": HttpFormatter},
-            },
-            "handlers": {
-                #...,
-                "log_outgoing_requests": {
-                    "level": "DEBUG",
-                    "formatter": "outgoing_requests",
-                    "class": "logging.StreamHandler",
-                },
-                "save_outgoing_requests": {
-                    "level": "DEBUG",
-                    "class": "log_outgoing_requests.handlers.DatabaseOutgoingRequestsHandler",
-                },
-            },
-            "loggers": {
-                #...,
-                "requests": {
-                    "handlers": ["log_outgoing_requests", "save_outgoing_requests"],
-                    "level": "DEBUG",
-                    "propagate": True,
-                },
-            },
-        }
-
-        LOG_OUTGOING_REQUESTS_DB_SAVE = True # save logs enabled/disabled based on the boolean value
-        LOG_OUTGOING_REQUESTS_DB_SAVE_BODY = True # save request/response body
-        LOG_OUTGOING_REQUESTS_EMIT_BODY = True # log request/response body
-        LOG_OUTGOING_REQUESTS_CONTENT_TYPES = [
-                "text/*",
-                "application/json",
-                "application/xml",
-                "application/soap+xml",
-        ] # save request/response bodies with matching content type
-        LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 524_288  # maximal size (in bytes) for the request/response body
-        LOG_OUTGOING_REQUESTS_LOG_BODY_TO_STDOUT = True
-
-
-#.  Run the migrations
-
-    .. code-block:: bash
-
-        python manage.py migrate
-
-#.  Make some requests using requests library within the Django context, for example using ``python manage.py shell``
-
-    .. code-block:: console
-
-        import requests
-        res = requests.get("https://httpbin.org/json")
-        print(res.json())
-
-#.  Check stdout for the printable output, and navigate to ``Admin > Miscellaneous > Outgoing Requests Logs``
-    to see the saved log records. In order to override the settings for saving logs, navigate to
-    ``Admin > Miscellaneous > Outgoing Requests Log Configuration``.
-
+Please see the hosted documentation_ for installation, configuration and usage
+instructions.
 
 Local development
 =================

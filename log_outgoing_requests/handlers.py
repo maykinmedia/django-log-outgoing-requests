@@ -27,6 +27,19 @@ def is_request_log_record(record: AnyLogRecord) -> bool:
 
 
 class DatabaseOutgoingRequestsHandler(logging.Handler):
+    """
+    Save the log record to the database if conditions are met.
+
+    The handler checks if saving to the database is desired. If not, nothing happens.
+    Next, request and response body are each checked if:
+
+        * saving to database is desired
+        * the content type is appropriate
+        * the size of the body does not exceed the configured treshold
+
+    If any of the conditions don't match, then the body is omitted.
+    """
+
     def emit(self, record: AnyLogRecord):
         from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
         from .utils import process_body

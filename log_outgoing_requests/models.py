@@ -103,8 +103,8 @@ class OutgoingRequestsLog(models.Model):
     )
 
     class Meta:
-        verbose_name = _("Outgoing Requests Log")
-        verbose_name_plural = _("Outgoing Requests Logs")
+        verbose_name = _("Outgoing request log")
+        verbose_name_plural = _("Outgoing request logs")
 
     def __str__(self):
         return ("{hostname} at {date}").format(
@@ -202,4 +202,4 @@ class OutgoingRequestsLogConfig(SingletonModel):
         return self.save_body == SaveLogsChoice.yes
 
     class Meta:
-        verbose_name = _("Outgoing Requests Log Configuration")
+        verbose_name = _("Outgoing request log configuration")
