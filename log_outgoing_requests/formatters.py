@@ -1,7 +1,7 @@
 import logging
 import textwrap
 
-from django.conf import settings
+from .conf import settings
 
 
 class HttpFormatter(logging.Formatter):

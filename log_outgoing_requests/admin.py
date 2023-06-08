@@ -1,10 +1,10 @@
 from django import forms
-from django.conf import settings
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
 from solo.admin import SingletonModelAdmin
 
+from .conf import settings
 from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
 
 

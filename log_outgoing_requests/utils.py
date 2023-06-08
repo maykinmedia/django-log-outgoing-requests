@@ -3,11 +3,10 @@
 import logging
 from typing import Iterable, Tuple, Union
 
-from django.conf import settings
-
 from requests import PreparedRequest, Response
 
 from .compat import parse_header_parameters
+from .conf import settings
 from .datastructures import ContentType, ProcessedBody
 from .models import OutgoingRequestsLogConfig
 
