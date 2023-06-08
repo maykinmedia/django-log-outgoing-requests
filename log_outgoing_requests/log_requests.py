@@ -20,16 +20,16 @@ def install_outgoing_requests_logging():
     Log all outgoing requests which are made by the library requests during a session.
     """
 
-    if hasattr(Session, "_original_request"):
+    if hasattr(Session, "_initial_request"):
         logger.debug(
-            "Session is already patched OR has an ``_original_request`` attribute."
+            "Session is already patched OR has an ``_initial_request`` attribute."
         )
         return
 
-    Session._original_request = Session.request
+    Session._initial_request = Session.request  # type: ignore
 
     def new_request(self, *args, **kwargs):
         self.hooks["response"].append(hook_requests_logging)
-        return self._original_request(*args, **kwargs)
+        return self._initial_request(*args, **kwargs)
 
     Session.request = new_request
