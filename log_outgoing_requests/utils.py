@@ -5,15 +5,10 @@ from typing import Iterable, Tuple, Union
 
 from django.conf import settings
 
-# header parsing must be refactored when upgrading to Django 4.2
-# Django <= 4.1: https://github.com/django/django/blob/stable/4.1.x/django/http/multipartparser.py
-# Django >= 4.2: https://github.com/django/django/blob/main/django/http/multipartparser.py
-from django.http.multipartparser import parse_header
-
 from requests import PreparedRequest, Response
 
-from log_outgoing_requests.datastructures import ContentType
-
+from .compat import parse_header_parameters
+from .datastructures import ContentType
 from .models import OutgoingRequestsLogConfig
 
 logger = logging.getLogger(__name__)
@@ -77,18 +72,13 @@ def parse_content_type_header(
 
     :returns: a `tuple` (content_type, encoding)
     """
-    content_type_header = http_obj.headers.get("Content-Type", "")
-
-    if not content_type_header:
+    content_type_line = http_obj.headers.get("Content-Type", "")
+    if not content_type_line:
         return ("", "")
 
-    # `parse_header` works on bytes, so we need to encode the header
-    parsed = parse_header(content_type_header.encode("utf-8"))
-
-    # decode the (representation of the) charset/encoding back to str
-    encoding = parsed[1].get("charset", b"").decode("utf-8")
-
-    return parsed[0], encoding
+    content_type, params = parse_header_parameters(content_type_line)
+    encoding = params.get("charset", "")
+    return content_type, encoding
 
 
 def check_content_type(content_type: str) -> bool:
