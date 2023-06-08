@@ -12,7 +12,10 @@ from typing import Union
 @dataclass
 class ContentType:
     """
-    Data class for keeping track of content types and associated default encodings
+    Specify a supported content type and matching default encoding.
+
+    The default encoding is used when no explicit encoding could be parsed from the
+    Content-Type HTTP header.
     """
 
     pattern: str

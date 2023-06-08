@@ -2,7 +2,6 @@ import logging
 from typing import Union
 from urllib.parse import urlparse
 
-from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.functional import cached_property
@@ -10,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from solo.models import SingletonModel  # type: ignore
 
+from .conf import settings
 from .constants import SaveLogsChoice
 
 logger = logging.getLogger(__name__)
@@ -103,8 +103,8 @@ class OutgoingRequestsLog(models.Model):
     )
 
     class Meta:
-        verbose_name = _("Outgoing Requests Log")
-        verbose_name_plural = _("Outgoing Requests Logs")
+        verbose_name = _("Outgoing request log")
+        verbose_name_plural = _("Outgoing request logs")
 
     def __str__(self):
         return ("{hostname} at {date}").format(
@@ -202,4 +202,4 @@ class OutgoingRequestsLogConfig(SingletonModel):
         return self.save_body == SaveLogsChoice.yes
 
     class Meta:
-        verbose_name = _("Outgoing Requests Log Configuration")
+        verbose_name = _("Outgoing request log configuration")

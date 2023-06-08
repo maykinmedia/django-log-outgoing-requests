@@ -1,14 +1,30 @@
 import logging
 import textwrap
 
-from django.conf import settings
-
 
 class HttpFormatter(logging.Formatter):
+    """
+    Display request and response (meta) details of python requests library log records.
+
+    Depending on the configuration, either only the metadata or metadata + body of
+    requests and matching responses is emitted.
+
+    Metadata:
+
+        * HTTP method
+        * Request URL
+        * Request headers (masking auth details)
+        * Response status
+        * Response reason
+        * Response headers
+    """
+
     def _formatHeaders(self, d):
         return "\n".join(f"{k}: {v}" for k, v in d.items())
 
     def _formatBody(self, content: str, request_or_response: str) -> str:
+        from .conf import settings
+
         if settings.LOG_OUTGOING_REQUESTS_EMIT_BODY:
             return f"\n{request_or_response} body:\n{content}"
         return ""

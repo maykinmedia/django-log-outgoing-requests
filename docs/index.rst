@@ -2,27 +2,36 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to log_outgoing_requests's documentation!
-=================================================
+Welcome to django-log-outgoing-requests' documentation!
+=======================================================
 
 |build-status| |code-quality| |black| |coverage| |docs|
 
 |python-versions| |django-versions| |pypi-version|
 
-Log and save outgoing requests made by requests library
+A logging solution for outgoing requests made via the requests_ library.
+
+django-log-outgoing-requests provides a custom formatter and handler for the Python
+``logging`` standard library. It integrates with existing logging configuration and
+provides (configuration) options to save the log records to the database.
+
+You would typically use this as a tool to debug integration with external HTTP services,
+via log shipping solutions and/or the Django admin.
 
 Features
 ========
 
-* Log outgoing requests
-* Save logs in database
+* log formatter for a readable representation of a request and response
+* log handler to persist relevant log records to the database
+* configurable via Django settings
+* runtime configuration in the admin, overriding defaults from Django settings.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    quickstart
-
+   reference
 
 
 Indices and tables
@@ -58,3 +67,5 @@ Indices and tables
 
 .. |pypi-version| image:: https://img.shields.io/pypi/v/django-log-outgoing-requests.svg
     :target: https://pypi.org/project/django-log-outgoing-requests/
+
+.. _requests: https://docs.python-requests.org/en/latest/index.html
