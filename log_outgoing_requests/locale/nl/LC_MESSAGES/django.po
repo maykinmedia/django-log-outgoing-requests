@@ -1,0 +1,195 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-06-08 07:48-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Sergei Maertens <sergei@maykinmedia.nl>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: admin.py:55
+msgid "Query parameters"
+msgstr "Query parameters"
+
+#: admin.py:66
+#, python-brace-format
+msgid ""
+"Whether request logs should be saved to the database (default: {default})."
+msgstr ""
+"Sla request logs op in de database (standaardconfiguratie: {default})."
+
+#: admin.py:69
+#, python-brace-format
+msgid ""
+"Whether the body of the request and response should be logged (default: "
+"{default})."
+msgstr ""
+"Sla request- en response-inhoud op in de database (standaardconfiguratie: {default})."
+
+#: apps.py:7 models.py:107
+msgid "Outgoing request logs"
+msgstr "Uitgaande request-logs"
+
+#: constants.py:6
+msgid "Use default"
+msgstr "Gebruik standaardconfiguratie"
+
+#: constants.py:7
+msgid "Yes"
+msgstr "Ja"
+
+#: constants.py:8
+msgid "No"
+msgstr "Nee"
+
+#: models.py:20
+msgid "URL"
+msgstr "URL"
+
+#: models.py:23
+msgid "The url of the outgoing request."
+msgstr "De URL waar de request heen gestuurd is."
+
+#: models.py:28
+msgid "Hostname"
+msgstr "Hostnaam"
+
+#: models.py:31
+msgid "The netloc/hostname part of the url."
+msgstr "De hostnaam (inclusief poort) van de URL."
+
+#: models.py:34
+msgid "Parameters"
+msgstr "Parameters"
+
+#: models.py:36
+msgid "The parameters (if they exist)."
+msgstr "Eventuele parameters."
+
+#: models.py:39
+msgid "Status code"
+msgstr "HTTP-statuscode"
+
+#: models.py:42
+msgid "The status code of the response."
+msgstr "De statuscode van de response."
+
+#: models.py:45
+msgid "Method"
+msgstr "HTTP-methode"
+
+#: models.py:48
+msgid "The type of request method."
+msgstr "Het soort HTTP request."
+
+#: models.py:51
+msgid "Request content type"
+msgstr "Request content-type"
+
+#: models.py:54
+msgid "The content type of the request."
+msgstr "Het HTTP Content-Type van de request."
+
+#: models.py:57
+msgid "Response content type"
+msgstr "Response content-type"
+
+#: models.py:60
+msgid "The content type of the response."
+msgstr "Het HTTP Content-Type van de response."
+
+#: models.py:63
+msgid "Request headers"
+msgstr "Request headers"
+
+#: models.py:65
+msgid "The request headers."
+msgstr "De HTTP-headers van de request."
+
+#: models.py:68
+msgid "Response headers"
+msgstr "Response headers"
+
+#: models.py:70
+msgid "The response headers."
+msgstr "De HTTP-headers van de response."
+
+#: models.py:73
+msgid "Request body"
+msgstr "Request inhoud"
+
+#: models.py:75
+msgid "The request body."
+msgstr "De content/body van de request."
+
+#: models.py:78
+msgid "Response body"
+msgstr "Response inhoud"
+
+#: models.py:80
+msgid "The response body."
+msgstr "De content/body van de response."
+
+#: models.py:91
+msgid "Response in ms"
+msgstr "Duur in ms"
+
+#: models.py:93
+msgid "This is the response time in ms."
+msgstr ""
+"De tijd dat het duurde tussen versturen van de request en ontvangen van de "
+"response, in ms."
+
+#: models.py:96
+msgid "Timestamp"
+msgstr "Tijdstip"
+
+#: models.py:97
+msgid "This is the date and time the API call was made."
+msgstr "Tijdstip wanneer de request gemaakt is."
+
+#: models.py:100
+msgid "Trace"
+msgstr "Traceback"
+
+#: models.py:102
+msgid "Text providing information in case of request failure."
+msgstr "Technische traceback indien er een crash was."
+
+#: models.py:106
+msgid "Outgoing request log"
+msgstr "Uitgaand request logrecord"
+
+#: models.py:165
+msgid "Save logs to database"
+msgstr "Logs opslaan in de database"
+
+#: models.py:171
+msgid "Save request + response body"
+msgstr "Sla de inhoud van request en/of response op in de database."
+
+#: models.py:177
+msgid "Maximal content size"
+msgstr "Maximale content-grootte"
+
+#: models.py:181
+msgid ""
+"The maximal size of the request/response content (in bytes). If 'Require "
+"content length' is not checked, this setting has no effect."
+msgstr ""
+"De maximale grootte van de request/response-inhoud (in bytes). Inhoud die deze "
+"grootte overschrijdt, dan wordt de inhoud niet opgeslagen."
+
+#: models.py:205
+msgid "Outgoing request log configuration"
+msgstr "Uitgaande request-logging configuratie"
