@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -118,35 +119,36 @@ class OutgoingRequestsLog(models.Model):
     def query_params(self):
         return self.url_parsed.query
 
-    @cached_property
-    def request_body_decoded(self) -> str:
+    def _decode_body(self, content: Union[bytes, memoryview], encoding: str) -> str:
         """
-        Decoded request body for use in template.
+        Decode body for use in template.
 
         If the stored encoding is not found (either because it is empty or because of
         spelling errors etc.), we decode "blindly", replacing chars that could not be
         decoded.
+
+        Inspired on :meth:`requests.models.Response.text`, which is Apache 2.0 licensed.
         """
         try:
-            decoded = str(self.req_body, self.res_body_encoding, errors="replace")
+            return str(content, encoding, errors="replace")
         except LookupError:
-            decoded = str(self.req_body, errors="replace")
-        return decoded
+            # A LookupError is raised if the encoding was not found which could
+            # indicate a misspelling or similar mistake.
+            return str(content, errors="replace")
+
+    @cached_property
+    def request_body_decoded(self) -> str:
+        """
+        Decoded request body for use in template.
+        """
+        return self._decode_body(self.req_body, self.req_body_encoding)
 
     @cached_property
     def response_body_decoded(self) -> str:
         """
         Decoded response body for use in template.
-
-        If the stored encoding is not found (either because it is empty or because of
-        spelling errors etc.), we decode "blindly", replacing chars that could not be
-        decoded.
         """
-        try:
-            decoded = str(self.res_body, self.res_body_encoding, errors="replace")
-        except LookupError:
-            decoded = str(self.res_body, errors="replace")
-        return decoded
+        return self._decode_body(self.res_body, self.res_body_encoding)
 
 
 def get_default_max_content_length():

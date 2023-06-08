@@ -1,10 +1,9 @@
 from django import forms
 from django.conf import settings
 from django.contrib import admin
-from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 
-from solo.admin import SingletonModelAdmin  # type: ignore
+from solo.admin import SingletonModelAdmin
 
 from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
 
@@ -42,45 +41,32 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     show_full_result_count = False
     change_form_template = "log_outgoing_requests/change_form.html"
 
+    class Media:
+        css = {
+            "all": ("log_outgoing_requests/css/admin.css",),
+        }
+
     def has_add_permission(self, request):
         return False
 
     def has_change_permission(self, request, obj=None):
         return False
 
+    @admin.display(description=_("Query parameters"))
     def query_params(self, obj):
         return obj.query_params
-
-    def change_view(self, request, object_id, extra_context=None):
-        """
-        Add log object to to context for use in template.
-        """
-        log = get_object_or_404(OutgoingRequestsLog, id=object_id)
-
-        extra_context = extra_context or {}
-        extra_context["log"] = log
-
-        return super().change_view(request, object_id, extra_context=extra_context)
-
-    query_params.short_description = _("Query parameters")  # type: ignore
-
-    class Media:
-        css = {
-            "all": ("log_outgoing_requests/css/admin.css",),
-        }
 
 
 class ConfigAdminForm(forms.ModelForm):
     class Meta:
         model = OutgoingRequestsLogConfig
         fields = "__all__"
-        widgets = {"allowed_content_types": forms.CheckboxSelectMultiple}
         help_texts = {
             "save_to_db": _(
                 "Whether request logs should be saved to the database (default: {default})."
             ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE),
             "save_body": _(
-                "Wheter the body of the request and response should be logged (default: "
+                "Whether the body of the request and response should be logged (default: "
                 "{default})."
             ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE_BODY),
         }

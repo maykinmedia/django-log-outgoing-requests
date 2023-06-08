@@ -1,7 +1,7 @@
 """Tests for the utility functions"""
 
 import logging
-from typing import TYPE_CHECKING, Iterable, Tuple, Union
+from typing import Iterable, Tuple, Union
 
 from django.conf import settings
 
@@ -14,9 +14,7 @@ from requests import PreparedRequest, Response
 
 from log_outgoing_requests.datastructures import ContentType
 
-if TYPE_CHECKING:  # pragma: nocover
-    from .models import OutgoingRequestsLogConfig
-
+from .models import OutgoingRequestsLogConfig
 
 logger = logging.getLogger(__name__)
 
