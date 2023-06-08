@@ -1,8 +1,7 @@
 """Tests for the admin interface"""
 
-from datetime import datetime
-
 from django.urls import reverse
+from django.utils import timezone
 
 import pytest
 import requests
@@ -22,7 +21,7 @@ def test_decoded_content_display(admin_client):
         id=1,
         req_body=b"I'm a lumberjack and I'm okay.",
         res_body=b"I sleep all night and work all day.",
-        timestamp=datetime.utcnow(),
+        timestamp=timezone.now(),
     )
     url = reverse(
         "admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,)
