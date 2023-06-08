@@ -4,7 +4,7 @@ import textwrap
 
 class HttpFormatter(logging.Formatter):
     """
-    Display request and response (meta) details python requests library log records.
+    Display request and response (meta) details of python requests library log records.
 
     Depending on the configuration, either only the metadata or metadata + body of
     requests and matching responses is emitted.

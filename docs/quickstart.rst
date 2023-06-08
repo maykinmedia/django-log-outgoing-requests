@@ -28,7 +28,7 @@ Configuration
 =============
 
 You must configure the ``LOGGING`` Django setting to integrate the formatter(s) and/or
-handler(s). Review the Django's `documentation`_ about this setting if there is no
+handler(s). Review the Django `documentation`_ about this setting if there is no
 configuration in place yet.
 
 The snippet below provides an example of configuring the custom formatter and enabling
@@ -81,9 +81,15 @@ you likely want to apply the following non-default settings:
     LOG_OUTGOING_REQUESTS_DB_SAVE_BODY = True # save request/response body
     LOG_OUTGOING_REQUESTS_EMIT_BODY = True # log request/response body
 
-.. note:: Saving to database (both the entire record and the request/response bodies)
-   can be configured at runtime in the admin interface. From a security and privacy
-   perspective, we advise not enabling these things by default via Django settings.
+.. note::
+
+    A number of settings can be configured at runtime in the admin interface:
+
+        * Saving to database (both the entire record and the request/response bodies)
+        * Maximum body size
+
+    From a security and privacy perspective, we advise not enabling saving to the
+    database by default via Django settings and instead rely on runtime configuration.
 
 See :ref:`reference_settings` for all available settings and their meaning.
 
