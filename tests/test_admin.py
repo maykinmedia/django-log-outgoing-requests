@@ -32,8 +32,8 @@ def test_decoded_content_display(admin_client):
 
     html = response.content.decode("utf-8")
     doc = PyQuery(html)
-    request_body = doc.find(".request-body-decoded").text()
-    response_body = doc.find(".response-body-decoded").text()
+    request_body = doc.find(".field-request_body .readonly").text()
+    response_body = doc.find(".field-response_body .readonly").text()
 
     assert request_body == "I'm a lumberjack and I'm okay."
     assert response_body == "I sleep all night and work all day."

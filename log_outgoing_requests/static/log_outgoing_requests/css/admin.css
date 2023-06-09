@@ -1,9 +1,15 @@
-.field-res_body {
-  display: inline-block;
-  width: var(--dlor-body-width, 40rem);
-  font-family: monospace;
-  line-height: 1.5rem;
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-url .readonly,
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-method .readonly,
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-status_code .readonly {
+  font-weight: 900;
 }
-input[name="max_content_length"] {
-  width: 7.25em;
+
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-request_body .readonly,
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-req_headers .readonly,
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-response_body .readonly,
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-res_headers .readonly {
+  white-space: pre;
+  font-family: monospace;
+  overflow: auto;
+
 }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-08 07:48-0500\n"
+"POT-Creation-Date: 2023-06-09 05:11-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Sergei Maertens <sergei@maykinmedia.nl>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,26 +17,47 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-#: admin.py:55
+
+#: admin.py:29
+msgid "Request"
+msgstr "Request"
+
+#: admin.py:45
+msgid "Response"
+msgstr "Response"
+
+#: admin.py:57
+msgid "Extra"
+msgstr "Overig"
+
+#: admin.py:84
 msgid "Query parameters"
 msgstr "Query parameters"
 
-#: admin.py:66
+#: admin.py:88 models.py:70 models.py:151
+msgid "Request body"
+msgstr "Request inhoud"
+
+#: admin.py:92 models.py:83 models.py:160
+msgid "Response body"
+msgstr "Response inhoud"
+
+#: admin.py:103
 #, python-brace-format
 msgid ""
 "Whether request logs should be saved to the database (default: {default})."
-msgstr ""
-"Sla request logs op in de database (standaardconfiguratie: {default})."
+msgstr "Sla request logs op in de database (standaardconfiguratie: {default})."
 
-#: admin.py:69
+#: admin.py:106
 #, python-brace-format
 msgid ""
 "Whether the body of the request and response should be logged (default: "
 "{default})."
 msgstr ""
-"Sla request- en response-inhoud op in de database (standaardconfiguratie: {default})."
+"Sla request- en response-inhoud op in de database (standaardconfiguratie: "
+"{default})."
 
-#: apps.py:7 models.py:107
+#: apps.py:7 models.py:112
 msgid "Outgoing request logs"
 msgstr "Uitgaande request-logs"
 
@@ -56,39 +77,39 @@ msgstr "Nee"
 msgid "URL"
 msgstr "URL"
 
-#: models.py:23
+#: models.py:22
 msgid "The url of the outgoing request."
 msgstr "De URL waar de request heen gestuurd is."
 
-#: models.py:28
+#: models.py:27
 msgid "Hostname"
 msgstr "Hostnaam"
 
-#: models.py:31
+#: models.py:29
 msgid "The netloc/hostname part of the url."
 msgstr "De hostnaam (inclusief poort) van de URL."
 
-#: models.py:34
+#: models.py:32
 msgid "Parameters"
 msgstr "Parameters"
 
-#: models.py:36
+#: models.py:34
 msgid "The parameters (if they exist)."
 msgstr "Eventuele parameters."
 
-#: models.py:39
+#: models.py:37
 msgid "Status code"
 msgstr "HTTP-statuscode"
 
-#: models.py:42
+#: models.py:40
 msgid "The status code of the response."
 msgstr "De statuscode van de response."
 
-#: models.py:45
+#: models.py:43
 msgid "Method"
 msgstr "HTTP-methode"
 
-#: models.py:48
+#: models.py:46
 msgid "The type of request method."
 msgstr "Het soort HTTP request."
 
@@ -96,100 +117,122 @@ msgstr "Het soort HTTP request."
 msgid "Request content type"
 msgstr "Request content-type"
 
-#: models.py:54
+#: models.py:53
 msgid "The content type of the request."
 msgstr "Het HTTP Content-Type van de request."
 
-#: models.py:57
-msgid "Response content type"
-msgstr "Response content-type"
-
-#: models.py:60
-msgid "The content type of the response."
-msgstr "Het HTTP Content-Type van de response."
-
-#: models.py:63
+#: models.py:56
 msgid "Request headers"
 msgstr "Request headers"
 
-#: models.py:65
+#: models.py:56
 msgid "The request headers."
 msgstr "De HTTP-headers van de request."
 
-#: models.py:68
-msgid "Response headers"
-msgstr "Response headers"
+#: models.py:59
+msgid "Request encoding"
+msgstr "Request encoding"
+
+#: models.py:63
+msgid ""
+"The encoding is either extracted from the Content-Type header or, if absent, "
+"taken from the default encoding configured for the content type. If the "
+"decoded request content is not displaying correctly, you may try changing "
+"the encoding value here."
+msgstr ""
+"De encoding is afgeleid uit de Content-Type header, of, indien niet aanwezig, "
+"uit de standaardinstellingen for het content type. Indien de request-inhoud niet "
+"goed weergegeven wordt, dan kan je een andere encoding proberen."
 
 #: models.py:70
-msgid "The response headers."
-msgstr "De HTTP-headers van de response."
-
-#: models.py:73
-msgid "Request body"
-msgstr "Request inhoud"
-
-#: models.py:75
 msgid "The request body."
 msgstr "De content/body van de request."
 
-#: models.py:78
-msgid "Response body"
-msgstr "Response inhoud"
+#: models.py:75
+msgid "Response content type"
+msgstr "Response content-type"
+
+#: models.py:77
+msgid "The content type of the response."
+msgstr "Het HTTP Content-Type van de response."
 
 #: models.py:80
+msgid "Response headers"
+msgstr "Response headers"
+
+#: models.py:80
+msgid "The response headers."
+msgstr "De HTTP-headers van de response."
+
+#: models.py:83
 msgid "The response body."
 msgstr "De content/body van de response."
 
-#: models.py:91
+#: models.py:86
+msgid "Response encoding"
+msgstr "Response encoding"
+
+#: models.py:90
+msgid ""
+"The encoding is either extracted from the Content-Type header or, if absent, "
+"taken from the default encoding configured for the content type. If the "
+"decoded response content is not displaying correctly, you may try changing "
+"the encoding value here."
+msgstr ""
+"De encoding is afgeleid uit de Content-Type header, of, indien niet aanwezig, "
+"uit de standaardinstellingen for het content type. Indien de response-inhoud niet "
+"goed weergegeven wordt, dan kan je een andere encoding proberen."
+
+#: models.py:97
 msgid "Response in ms"
 msgstr "Duur in ms"
 
-#: models.py:93
+#: models.py:99
 msgid "This is the response time in ms."
 msgstr ""
 "De tijd dat het duurde tussen versturen van de request en ontvangen van de "
 "response, in ms."
 
-#: models.py:96
+#: models.py:102
 msgid "Timestamp"
 msgstr "Tijdstip"
 
-#: models.py:97
+#: models.py:103
 msgid "This is the date and time the API call was made."
 msgstr "Tijdstip wanneer de request gemaakt is."
 
-#: models.py:100
+#: models.py:106
 msgid "Trace"
 msgstr "Traceback"
 
-#: models.py:102
+#: models.py:107
 msgid "Text providing information in case of request failure."
 msgstr "Technische traceback indien er een crash was."
 
-#: models.py:106
+#: models.py:111
 msgid "Outgoing request log"
 msgstr "Uitgaand request logrecord"
 
-#: models.py:165
+#: models.py:174
 msgid "Save logs to database"
 msgstr "Logs opslaan in de database"
 
-#: models.py:171
+#: models.py:180
 msgid "Save request + response body"
 msgstr "Sla de inhoud van request en/of response op in de database."
 
-#: models.py:177
+#: models.py:186
 msgid "Maximal content size"
 msgstr "Maximale content-grootte"
 
-#: models.py:181
+#: models.py:190
 msgid ""
 "The maximal size of the request/response content (in bytes). If 'Require "
 "content length' is not checked, this setting has no effect."
 msgstr ""
-"De maximale grootte van de request/response-inhoud (in bytes). Inhoud die deze "
-"grootte overschrijdt, dan wordt de inhoud niet opgeslagen."
+"De maximale grootte van de request/response-inhoud (in bytes). Inhoud die "
+"deze grootte overschrijdt, dan wordt de inhoud niet opgeslagen."
 
-#: models.py:205
+#: models.py:214
 msgid "Outgoing request log configuration"
 msgstr "Uitgaande request-logging configuratie"

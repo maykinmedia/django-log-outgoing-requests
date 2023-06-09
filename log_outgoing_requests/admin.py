@@ -10,22 +10,6 @@ from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
 
 @admin.register(OutgoingRequestsLog)
 class OutgoingRequestsLogAdmin(admin.ModelAdmin):
-    fields = (
-        "url",
-        "hostname",
-        "query_params",
-        "params",
-        "status_code",
-        "method",
-        "response_ms",
-        "timestamp",
-        "req_content_type",
-        "res_content_type",
-        "req_headers",
-        "res_headers",
-        "trace",
-    )
-    readonly_fields = fields
     list_display = (
         "hostname",
         "url",
@@ -39,7 +23,55 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     search_fields = ("url", "params", "hostname")
     date_hierarchy = "timestamp"
     show_full_result_count = False
-    change_form_template = "log_outgoing_requests/change_form.html"
+
+    fieldsets = (
+        (
+            _("Request"),
+            {
+                "fields": (
+                    "method",
+                    "url",
+                    "timestamp",
+                    "query_params",
+                    "params",
+                    "req_headers",
+                    "req_content_type",
+                    "req_body_encoding",
+                    "request_body",
+                )
+            },
+        ),
+        (
+            _("Response"),
+            {
+                "fields": (
+                    "status_code",
+                    "response_ms",
+                    "res_headers",
+                    "res_content_type",
+                    "res_body_encoding",
+                    "response_body",
+                )
+            },
+        ),
+        (_("Extra"), {"fields": ("trace",)}),
+    )
+    readonly_fields = (
+        "url",
+        "timestamp",
+        "method",
+        "query_params",
+        "params",
+        "req_headers",
+        "req_content_type",
+        "request_body",
+        "status_code",
+        "response_ms",
+        "res_headers",
+        "res_content_type",
+        "response_body",
+        "trace",
+    )
 
     class Media:
         css = {
@@ -49,12 +81,17 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request, obj=None):
-        return False
-
     @admin.display(description=_("Query parameters"))
     def query_params(self, obj):
         return obj.query_params
+
+    @admin.display(description=_("Request body"))
+    def request_body(self, obj) -> str:
+        return obj.request_body_decoded or "-"
+
+    @admin.display(description=_("Response body"))
+    def response_body(self, obj) -> str:
+        return obj.response_body_decoded or "-"
 
 
 class ConfigAdminForm(forms.ModelForm):
