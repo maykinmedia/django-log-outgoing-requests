@@ -1,7 +1,7 @@
 django-log-outgoing-requests
 =================================================
 
-:Version: 0.3.0
+:Version: 0.4.0
 :Source: https://github.com/maykinmedia/django-log-outgoing-requests
 :Keywords: logging, django, requests
 :PythonVersion: 3.8+
