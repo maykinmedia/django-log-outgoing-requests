@@ -29,9 +29,9 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
             _("Request"),
             {
                 "fields": (
+                    "method",
                     "url",
                     "timestamp",
-                    "method",
                     "query_params",
                     "params",
                     "req_headers",
@@ -87,11 +87,11 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 
     @admin.display(description=_("Request body"))
     def request_body(self, obj) -> str:
-        return obj.request_body_decoded
+        return obj.request_body_decoded or "-"
 
     @admin.display(description=_("Response body"))
     def response_body(self, obj) -> str:
-        return obj.response_body_decoded
+        return obj.response_body_decoded or "-"
 
 
 class ConfigAdminForm(forms.ModelForm):

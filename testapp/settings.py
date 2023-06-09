@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.sessions",
     "django.contrib.admin",
+    "solo",
     "log_outgoing_requests",
     "testapp",
 ]
