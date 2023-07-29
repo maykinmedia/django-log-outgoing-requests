@@ -101,9 +101,7 @@ def test_data_is_saved(request_mock_kwargs, request_variants, expected_headers):
 def test_data_is_saved_on_error():
     with pytest.raises(Exception):
         # TODO: To be replaced with a mock that raises requests.exceptions.ConnectionError?
-        requests.get(
-            "https://localhost:65000", headers={"Authorization": "foobar"}
-        )
+        requests.get("https://localhost:65000", headers={"Authorization": "foobar"})
 
     request_log = OutgoingRequestsLog.objects.last()
     assert request_log is not None
