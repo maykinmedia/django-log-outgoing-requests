@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 
 from requests.models import PreparedRequest, Response
 
+logger = logging.getLogger(__name__)
+
 
 class RequestLogRecord(LogRecord):
     requested_at: datetime
@@ -21,6 +23,13 @@ AnyLogRecord = Union[LogRecord, RequestLogRecord]
 
 def is_request_log_record(record: AnyLogRecord) -> bool:
     attrs = ("requested_at", "req", "res")
+    if any(not hasattr(record, attr) for attr in attrs):
+        return False
+    return True
+
+
+def is_exception_log_record(record: AnyLogRecord) -> bool:
+    attrs = ("requested_at", "exception", "method", "url", "req_headers")
     if any(not hasattr(record, attr) for attr in attrs):
         return False
     return True
@@ -40,17 +49,10 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
     If any of the conditions don't match, then the body is omitted.
     """
 
-    def emit(self, record: AnyLogRecord):
-        from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
+    def log_request(self, record, config):
+        from .models import OutgoingRequestsLog
         from .utils import process_body
 
-        config = cast(OutgoingRequestsLogConfig, OutgoingRequestsLogConfig.get_solo())
-        if not config.save_logs_enabled:
-            return
-
-        # skip requests not coming from the library requests
-        if not record or not is_request_log_record(record):
-            return
         # Typescript type predicates would be cool here :)
         record = cast(RequestLogRecord, record)
 
@@ -99,6 +101,48 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
                 )
 
         OutgoingRequestsLog.objects.create(**kwargs)
+
+    def log_exception(self, record, config):
+        from django.db import transaction
+
+        from .models import OutgoingRequestsLog
+        from .utils import process_body
+
+        scrubbed_req_headers = record.req_headers.copy()
+
+        if "Authorization" in scrubbed_req_headers:
+            scrubbed_req_headers["Authorization"] = "***hidden***"
+
+        parsed_url = urlparse(record.url)
+
+        kwargs = {
+            "url": record.url,
+            "hostname": parsed_url.netloc,
+            "params": parsed_url.params,
+            "method": record.method,
+            "timestamp": record.requested_at,
+            "trace": record.exception,
+            "req_headers": self.format_headers(scrubbed_req_headers),
+        }
+
+        try:
+            with transaction.atomic():
+                OutgoingRequestsLog.objects.create(**kwargs)
+        except Exception as e:
+            logger.exception(e)
+
+    def emit(self, record: AnyLogRecord):
+        from .models import OutgoingRequestsLogConfig
+
+        config = cast(OutgoingRequestsLogConfig, OutgoingRequestsLogConfig.get_solo())
+        if not config.save_logs_enabled:
+            return
+
+        # skip requests not coming from the library requests
+        if record and is_request_log_record(record):
+            return self.log_request(record, config)
+        elif record and is_exception_log_record(record):
+            return self.log_exception(record, config)
 
     def format_headers(self, headers):
         return "\n".join(f"{k}: {v}" for k, v in headers.items())

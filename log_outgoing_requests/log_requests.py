@@ -3,6 +3,7 @@ import logging
 from django.utils import timezone
 
 from requests import Session
+from requests.exceptions import ConnectionError
 
 logger = logging.getLogger("requests")
 
@@ -13,6 +14,17 @@ def hook_requests_logging(response, *args, **kwargs):
     """
     extra = {"requested_at": timezone.now(), "req": response.request, "res": response}
     logger.debug("Outgoing request", extra=extra)
+
+
+def hook_requests_exception(e, *args, **kwargs):
+    extra = {
+        "requested_at": timezone.now(),
+        "exception": str(e),
+        "method": kwargs.get("method", ""),
+        "url": kwargs.get("url", ""),
+        "req_headers": kwargs.get("headers", {}),
+    }
+    logger.debug("Outgoing request exception", extra=extra)
 
 
 def install_outgoing_requests_logging():
@@ -30,6 +42,10 @@ def install_outgoing_requests_logging():
 
     def new_request(self, *args, **kwargs):
         self.hooks["response"].append(hook_requests_logging)
-        return self._lor_initial_request(*args, **kwargs)
+        try:
+            return self._lor_initial_request(*args, **kwargs)
+        except ConnectionError as e:
+            hook_requests_exception(e, *args, **kwargs)
+            raise e
 
     Session.request = new_request

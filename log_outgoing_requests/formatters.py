@@ -35,24 +35,36 @@ class HttpFormatter(logging.Formatter):
         if record.name != "requests":
             return result
 
-        result += textwrap.dedent(
-            """
-            ---------------- request ----------------
-            {req.method} {req.url}
-            {reqhdrs} {request_body}
-
-            ---------------- response ----------------
-            {res.status_code} {res.reason} {res.url}
-            {reshdrs} {response_body}
-
-        """
-        ).format(
-            req=record.req,
-            res=record.res,
-            reqhdrs=self._formatHeaders(record.req.headers),
-            reshdrs=self._formatHeaders(record.res.headers),
-            request_body=self._formatBody(record.req.body, "Request"),
-            response_body=self._formatBody(record.res.content, "Response"),
-        )
+        if hasattr(record, "req"):
+            result += textwrap.dedent(
+                """
+                ---------------- request ----------------
+                {req.method} {req.url}
+                {reqhdrs} {request_body}
+                
+                ---------------- response ----------------
+                {res.status_code} {res.reason} {res.url}
+                {reshdrs} {response_body}
+                
+                """
+            ).format(
+                req=record.req,
+                res=record.res,
+                reqhdrs=self._formatHeaders(record.req.headers),
+                reshdrs=self._formatHeaders(record.res.headers),
+                request_body=self._formatBody(record.req.body, "Request"),
+                response_body=self._formatBody(record.res.content, "Response"),
+            )
+        elif hasattr(record, "exception"):
+            result += textwrap.dedent(
+                """
+                ---------------- request ----------------
+                {method} {url}
+                
+                ---------------- exception ----------------
+                {exception}
+                
+                """
+            ).format(method=record.method, url=record.url, exception=record.exception)
 
         return result
