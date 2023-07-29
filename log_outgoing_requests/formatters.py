@@ -41,11 +41,9 @@ class HttpFormatter(logging.Formatter):
                 ---------------- request ----------------
                 {req.method} {req.url}
                 {reqhdrs} {request_body}
-                
                 ---------------- response ----------------
                 {res.status_code} {res.reason} {res.url}
                 {reshdrs} {response_body}
-                
                 """
             ).format(
                 req=record.req,
@@ -60,10 +58,8 @@ class HttpFormatter(logging.Formatter):
                 """
                 ---------------- request ----------------
                 {method} {url}
-                
                 ---------------- exception ----------------
                 {exception}
-                
                 """
             ).format(method=record.method, url=record.url, exception=record.exception)
 
