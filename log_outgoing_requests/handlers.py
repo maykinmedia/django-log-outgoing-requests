@@ -29,7 +29,7 @@ def is_request_log_record(record: AnyLogRecord) -> bool:
 
 
 def is_exception_log_record(record: AnyLogRecord) -> bool:
-    attrs = ("requested_at", "exception", "method", "url", "req_headers")
+    attrs = ("requested_at", "exception", "method", "url", "req_body", "req_headers")
     if any(not hasattr(record, attr) for attr in attrs):
         return False
     return True
@@ -124,6 +124,13 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
             "req_headers": self.format_headers(scrubbed_req_headers),
         }
 
+        if config.save_body_enabled:
+            kwargs.update(  # TODO: req_content_type?
+                {
+                    "req_body_encoding": "utf-8",
+                    "req_body": bytes(record.req_body.encode("utf-8")),
+                }
+            )
         try:
             with transaction.atomic():
                 OutgoingRequestsLog.objects.create(**kwargs)

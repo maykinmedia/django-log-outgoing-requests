@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.utils import timezone
@@ -22,6 +23,7 @@ def hook_requests_exception(e, *args, **kwargs):
         "exception": str(e),
         "method": kwargs.get("method", ""),
         "url": kwargs.get("url", ""),
+        "req_body": str(kwargs.get("data", json.dumps(kwargs.get("json", {})))),
         "req_headers": kwargs.get("headers", {}),
     }
     logger.debug("Outgoing request exception", extra=extra)

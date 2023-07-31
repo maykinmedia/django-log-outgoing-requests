@@ -101,7 +101,11 @@ def test_data_is_saved(request_mock_kwargs, request_variants, expected_headers):
 def test_data_is_saved_on_error():
     with pytest.raises(Exception):
         # TODO: To be replaced with a mock that raises requests.exceptions.ConnectionError?
-        requests.get("https://localhost:65000", headers={"Authorization": "foobar"})
+        requests.get(
+            "https://localhost:65000",
+            headers={"Authorization": "foobar"},
+            json={"test": "request data"},
+        )
 
     request_log = OutgoingRequestsLog.objects.last()
     assert request_log is not None
@@ -109,6 +113,27 @@ def test_data_is_saved_on_error():
     assert request_log.url == "https://localhost:65000"
     assert request_log.method == "get"
     assert request_log.hostname == "localhost:65000"
+    assert bytes(request_log.req_body) == b'{"test": "request data"}'
+
+
+@pytest.mark.django_db
+@freeze_time("2021-10-18 13:00:00")
+def test_data_is_saved_on_error_data():
+    with pytest.raises(Exception):
+        # TODO: To be replaced with a mock that raises requests.exceptions.ConnectionError?
+        requests.get(
+            "https://localhost:65000",
+            headers={"Authorization": "foobar"},
+            data="Foo bar",
+        )
+
+    request_log = OutgoingRequestsLog.objects.last()
+    assert request_log is not None
+    assert "ConnectionError" in request_log.trace
+    assert request_log.url == "https://localhost:65000"
+    assert request_log.method == "get"
+    assert request_log.hostname == "localhost:65000"
+    assert bytes(request_log.req_body) == b"Foo bar"
 
 
 #
