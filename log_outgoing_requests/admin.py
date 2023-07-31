@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django import forms
 from django.contrib import admin
 from django.utils.translation import gettext as _
@@ -12,7 +14,7 @@ from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
 class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     list_display = (
         "hostname",
-        "url",
+        "truncated_url",
         "params",
         "status_code",
         "method",
@@ -92,6 +94,20 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     @admin.display(description=_("Response body"))
     def response_body(self, obj) -> str:
         return obj.response_body_decoded or "-"
+
+    def truncated_url(self, obj):
+        parsed_url = urlparse(obj.url)
+        path = parsed_url.path
+        max_length = 200
+        path_length = len(path)
+
+        if path_length <= max_length:
+            return path
+
+        half_length = (max_length - 3) // 2
+        left_half = path[:half_length]
+        right_half = path[-half_length:]
+        return left_half + " \u2026 " + right_half
 
 
 class ConfigAdminForm(forms.ModelForm):
