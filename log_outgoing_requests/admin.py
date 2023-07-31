@@ -16,6 +16,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "params",
         "status_code",
         "method",
+        "has_response",
         "response_ms",
         "timestamp",
     )
@@ -80,6 +81,12 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+    @admin.display(description=_("Response?"))
+    def has_response(self, obj):
+        return obj.status_code is not None
+
+    has_response.boolean = True
 
     @admin.display(description=_("Query parameters"))
     def query_params(self, obj):
