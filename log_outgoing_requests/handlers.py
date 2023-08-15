@@ -2,28 +2,10 @@
 # The handler is loaded eagerly at django startup when configuring settings.
 import logging
 import traceback
-from datetime import datetime
-from logging import LogRecord
-from typing import Union, cast
+from typing import cast
 from urllib.parse import urlparse
 
-from requests.models import PreparedRequest, Response
-
-
-class RequestLogRecord(LogRecord):
-    requested_at: datetime
-    req: PreparedRequest
-    res: Response
-
-
-AnyLogRecord = Union[LogRecord, RequestLogRecord]
-
-
-def is_request_log_record(record: AnyLogRecord) -> bool:
-    attrs = ("requested_at", "req", "res")
-    if any(not hasattr(record, attr) for attr in attrs):
-        return False
-    return True
+from .typing import AnyLogRecord, RequestLogRecord, is_request_log_record
 
 
 class DatabaseOutgoingRequestsHandler(logging.Handler):
@@ -44,14 +26,15 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
         from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
         from .utils import process_body
 
-        config = cast(OutgoingRequestsLogConfig, OutgoingRequestsLogConfig.get_solo())
+        config = OutgoingRequestsLogConfig.get_solo()
+        assert isinstance(config, OutgoingRequestsLogConfig)
         if not config.save_logs_enabled:
             return
 
         # skip requests not coming from the library requests
         if not record or not is_request_log_record(record):
             return
-        # Typescript type predicates would be cool here :)
+        # Python 3.10 TypeGuard can be useful here
         record = cast(RequestLogRecord, record)
 
         scrubbed_req_headers = record.req.headers.copy()

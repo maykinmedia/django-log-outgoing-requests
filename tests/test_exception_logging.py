@@ -2,7 +2,7 @@ import logging
 
 import pytest
 import requests
-from requests import HTTPError, RequestException
+from requests import RequestException
 
 from log_outgoing_requests.formatters import HttpFormatter
 from log_outgoing_requests.log_requests import log_errors
