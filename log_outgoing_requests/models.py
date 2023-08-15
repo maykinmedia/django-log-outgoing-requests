@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from solo.models import SingletonModel  # type: ignore
 
 from .conf import settings
+from .config_reset import schedule_config_reset
 from .constants import SaveLogsChoice
 
 logger = logging.getLogger(__name__)
@@ -192,6 +193,13 @@ class OutgoingRequestsLogConfig(SingletonModel):
         ),
     )
 
+    class Meta:
+        verbose_name = _("Outgoing request log configuration")
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        schedule_config_reset()
+
     @property
     def save_logs_enabled(self):
         """
@@ -209,6 +217,3 @@ class OutgoingRequestsLogConfig(SingletonModel):
         if self.save_body == SaveLogsChoice.use_default:
             return settings.LOG_OUTGOING_REQUESTS_DB_SAVE_BODY
         return self.save_body == SaveLogsChoice.yes
-
-    class Meta:
-        verbose_name = _("Outgoing request log configuration")

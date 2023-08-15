@@ -120,3 +120,5 @@ MEDIA_URL = "/media/"
 
 PRIVATE_MEDIA_ROOT = os.path.join(BASE_DIR, "private-media")
 PRIVATE_MEDIA_URL = "/private-media/"
+
+CELERY_TASK_ALWAYS_EAGER = True

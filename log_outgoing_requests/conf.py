@@ -51,3 +51,11 @@ class LogOutgoingRequestsConf(AppConf):
     If the body is larger than this treshold, the log record will still be saved to the
     database, but the body will be missing.
     """
+
+    RESET_DB_SAVE_AFTER = 60
+    """
+    If the config has been updated, reset the database logging after the number of
+    minutes.
+
+    NOTE: this relies on Celery being installed, an optional dependency.
+    """

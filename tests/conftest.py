@@ -10,6 +10,11 @@ from log_outgoing_requests.datastructures import ContentType
 #
 # default settings
 #
+@pytest.fixture(autouse=True)
+def disable_config_reset(settings):
+    settings.LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER = None
+
+
 @pytest.fixture
 def default_settings(settings):
     settings.LOG_OUTGOING_REQUESTS_CONTENT_TYPES = [
