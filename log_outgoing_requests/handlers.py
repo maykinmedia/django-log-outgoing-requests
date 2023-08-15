@@ -1,9 +1,17 @@
 # NOTE: Avoid import Django specifics at the module level to prevent circular imports.
 # The handler is loaded eagerly at django startup when configuring settings.
 import logging
+import time
 import traceback
+from datetime import timedelta
 from typing import cast
 from urllib.parse import urlparse
+
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
+
+from requests import PreparedRequest, RequestException, Response
 
 from .typing import AnyLogRecord, RequestLogRecord, is_request_log_record
 
@@ -37,31 +45,56 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
         # Python 3.10 TypeGuard can be useful here
         record = cast(RequestLogRecord, record)
 
-        scrubbed_req_headers = record.req.headers.copy()
+        # check if we're dealing with success or error state
+        exception = record.exc_info[1] if record.exc_info else None
+        if (response := getattr(record, "res", None)) is not None:
+            # we have a response - this is the 'happy' flow (connectivity is okay)
+            request: PreparedRequest | None = response.request or record.req
+        elif isinstance(exception, RequestException):
+            # we have an requests-specific exception
+            request: PreparedRequest | None = exception.request
+            response: Response | None = exception.response  # likely None
+        else:  # pragma: no cover
+            logger.debug("Received log record that cannot be handled %r", record)
+            return
 
+        scrubbed_req_headers = request.headers.copy() if request else {}
         if "Authorization" in scrubbed_req_headers:
             scrubbed_req_headers["Authorization"] = "***hidden***"
 
-        trace = traceback.format_exc() if record.exc_info else ""
+        parsed_url = urlparse(request.url) if request else None
 
-        parsed_url = urlparse(record.req.url)
+        # ensure we have a timezone aware timestamp. time.time() is platform dependent
+        # about being UTC or a local time. A robust way is checking how many seconds ago
+        # this record was created, and subtracting that from the current tz aware time.
+        time_delta_logged_seconds = time.time() - record.created
+        timestamp = timezone.now() - timedelta(seconds=time_delta_logged_seconds)
+
         kwargs = {
-            "url": record.req.url,
-            "hostname": parsed_url.netloc,
-            "params": parsed_url.params,
-            "status_code": record.res.status_code,
-            "method": record.req.method,
-            "timestamp": record.requested_at,
-            "response_ms": int(record.res.elapsed.total_seconds() * 1000),
+            "url": request.url if request else "(unknown)",
+            "hostname": parsed_url.netloc if parsed_url else "(unknown)",
+            "params": parsed_url.params if parsed_url else "(unknown)",
+            "status_code": response.status_code if response else None,
+            "method": request.method if request else "(unknown)",
+            "timestamp": timestamp,
+            "response_ms": int(response.elapsed.total_seconds() * 1000)
+            if response
+            else 0,
             "req_headers": self.format_headers(scrubbed_req_headers),
-            "res_headers": self.format_headers(record.res.headers),
-            "trace": trace,
+            "res_headers": self.format_headers(response.headers if response else {}),
+            "trace": "\n".join(traceback.format_exception(exception))
+            if exception
+            else "",
         }
 
         if config.save_body_enabled:
             # check request
-            processed_request_body = process_body(record.req, config)
-            if processed_request_body.allow_saving_to_db:
+            if (
+                request
+                and (
+                    processed_request_body := process_body(request, config)
+                ).allow_saving_to_db
+            ):
                 kwargs.update(
                     {
                         "req_content_type": processed_request_body.content_type,
@@ -71,8 +104,12 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
                 )
 
             # check response
-            processed_response_body = process_body(record.res, config)
-            if processed_response_body.allow_saving_to_db:
+            if (
+                response
+                and (
+                    processed_response_body := process_body(response, config)
+                ).allow_saving_to_db
+            ):
                 kwargs.update(
                     {
                         "res_content_type": processed_response_body.content_type,

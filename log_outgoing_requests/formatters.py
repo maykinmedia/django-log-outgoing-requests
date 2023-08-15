@@ -89,6 +89,8 @@ class HttpFormatter(logging.Formatter):
     """
 
     def _formatMessageWithResponse(self, record: RequestLogRecord) -> str:
+        assert record.req is not None
+        assert record.res is not None
         return "{request}\n{response}".format(
             request=format_request(record.req),
             response=format_response(record.res),
@@ -97,7 +99,8 @@ class HttpFormatter(logging.Formatter):
     def _formatMessageException(self, record: RequestLogRecord) -> str:
         assert record.exc_info is not None
         exception = record.exc_info[1]
-        assert isinstance(exception, RequestException)
+        if not isinstance(exception, RequestException):
+            return ""
         return format_error(exception)
 
     def formatMessage(self, record):

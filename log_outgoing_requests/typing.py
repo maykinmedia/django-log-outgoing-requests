@@ -7,8 +7,8 @@ from requests.models import PreparedRequest, Response
 
 class RequestLogRecord(logging.LogRecord):
     requested_at: datetime
-    req: PreparedRequest
-    res: Response
+    req: PreparedRequest | None
+    res: Response | None
 
 
 AnyLogRecord = Union[logging.LogRecord, RequestLogRecord]
