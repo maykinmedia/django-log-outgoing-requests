@@ -96,31 +96,22 @@ class HttpFormatter(logging.Formatter):
             response=format_response(record.res),
         )
 
-    def _formatMessageException(self, record: RequestLogRecord) -> str:
-        assert record.exc_info is not None
-        exception = record.exc_info[1]
-        if not isinstance(exception, RequestException):
-            return ""
-        return format_error(exception)
-
     def formatMessage(self, record):
         result = super().formatMessage(record)
-
-        if record.name != "requests":
-            return result
-
         if not is_request_log_record(record):
             return result
-        record = cast(RequestLogRecord, record)
 
         # if there is a response, apply the happy-flow formatting
         if getattr(record, "res", None) is not None:
+            record = cast(RequestLogRecord, record)
             output = self._formatMessageWithResponse(record)
             return f"{result}{output}"
 
         # if there is exception information, extract the details from that
-        if record.exc_info:
-            output = self._formatMessageException(record)
+        if record.exc_info and isinstance(
+            (exception := record.exc_info[1]), RequestException
+        ):
+            output = format_error(exception)
             return f"{result}{output}"
 
         # any other log record - use the default formatter

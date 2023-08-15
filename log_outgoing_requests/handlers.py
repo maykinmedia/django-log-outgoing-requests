@@ -11,7 +11,12 @@ from django.utils import timezone
 from requests import PreparedRequest, RequestException, Response
 
 from .compat import format_exception
-from .typing import AnyLogRecord, RequestLogRecord, is_request_log_record
+from .typing import (
+    AnyLogRecord,
+    ErrorRequestLogRecord,
+    RequestLogRecord,
+    is_request_log_record,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,14 +39,15 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
         from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
         from .utils import process_body
 
+        # skip requests not coming from the library requests
+        if not record or not is_request_log_record(record):
+            return
+
         config = OutgoingRequestsLogConfig.get_solo()
         assert isinstance(config, OutgoingRequestsLogConfig)
         if not config.save_logs_enabled:
             return
 
-        # skip requests not coming from the library requests
-        if not record or not is_request_log_record(record):
-            return
         # Python 3.10 TypeGuard can be useful here
         record = cast(RequestLogRecord, record)
 
@@ -49,8 +55,10 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
         exception = record.exc_info[1] if record.exc_info else None
         if (response := getattr(record, "res", None)) is not None:
             # we have a response - this is the 'happy' flow (connectivity is okay)
-            request: Optional[PreparedRequest] = response.request or record.req
+            record = cast(RequestLogRecord, record)
+            request = record.req
         elif isinstance(exception, RequestException):
+            record = cast(ErrorRequestLogRecord, record)
             # we have an requests-specific exception
             request: Optional[PreparedRequest] = exception.request
             response: Optional[Response] = exception.response  # likely None

@@ -55,7 +55,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "outgoing_requests": {"()": HttpFormatter},
+        "outgoing_requests": {
+            "()": HttpFormatter,
+            "format": "%(asctime)s %(levelname)s %(message)s",
+        },
     },
     "handlers": {
         "console": {
@@ -82,7 +85,7 @@ LOGGING = {
             "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
             "propagate": False,
         },
-        "requests": {
+        "log_outgoing_requests": {
             "handlers": ["log_outgoing_requests", "save_outgoing_requests"],
             "level": "DEBUG",
             "propagate": True,
