@@ -1,11 +1,11 @@
 import logging
 import textwrap
-import traceback
-from typing import cast
+from typing import Union, cast
 
 from requests import RequestException
 from requests.models import PreparedRequest, Response
 
+from .compat import format_exception
 from .typing import RequestLogRecord, is_request_log_record
 
 
@@ -13,7 +13,7 @@ def format_headers(headers) -> str:
     return "\n".join(f"{k}: {v}" for k, v in headers.items())
 
 
-def format_body(content: str | bytes | None, prefix: str) -> str:
+def format_body(content: Union[str, bytes, None], prefix: str) -> str:
     from .conf import settings
 
     if settings.LOG_OUTGOING_REQUESTS_EMIT_BODY:
@@ -61,7 +61,7 @@ def format_error(exception: RequestException) -> str:
         {tb}
     """
     )
-    tb = "\n".join(traceback.format_exception(exception))
+    tb = "\n".join(format_exception(exception))
     output = template.format(msg=str(exception), tb=tb)
     if (request := exception.request) is None:
         return output

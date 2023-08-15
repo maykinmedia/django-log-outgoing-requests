@@ -1,3 +1,5 @@
+import traceback
+
 import django
 
 # Taken from djangorestframework, see
@@ -58,3 +60,8 @@ else:
 
 
 __all__ = ["parse_header_parameters"]
+
+
+def format_exception(exception: BaseException):
+    t, e, tb = type(exception), exception, exception.__traceback__
+    return traceback.format_exception(t, e, tb)

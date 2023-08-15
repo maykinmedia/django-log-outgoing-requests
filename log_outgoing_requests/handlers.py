@@ -2,18 +2,18 @@
 # The handler is loaded eagerly at django startup when configuring settings.
 import logging
 import time
-import traceback
 from datetime import timedelta
-from typing import cast
+from typing import Optional, cast
 from urllib.parse import urlparse
 
 from django.utils import timezone
 
-logger = logging.getLogger(__name__)
-
 from requests import PreparedRequest, RequestException, Response
 
+from .compat import format_exception
 from .typing import AnyLogRecord, RequestLogRecord, is_request_log_record
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseOutgoingRequestsHandler(logging.Handler):
@@ -49,11 +49,11 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
         exception = record.exc_info[1] if record.exc_info else None
         if (response := getattr(record, "res", None)) is not None:
             # we have a response - this is the 'happy' flow (connectivity is okay)
-            request: PreparedRequest | None = response.request or record.req
+            request: Optional[PreparedRequest] = response.request or record.req
         elif isinstance(exception, RequestException):
             # we have an requests-specific exception
-            request: PreparedRequest | None = exception.request
-            response: Response | None = exception.response  # likely None
+            request: Optional[PreparedRequest] = exception.request
+            response: Optional[Response] = exception.response  # likely None
         else:  # pragma: no cover
             logger.debug("Received log record that cannot be handled %r", record)
             return
@@ -82,9 +82,7 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
             else 0,
             "req_headers": self.format_headers(scrubbed_req_headers),
             "res_headers": self.format_headers(response.headers if response else {}),
-            "trace": "\n".join(traceback.format_exception(exception))
-            if exception
-            else "",
+            "trace": "\n".join(format_exception(exception)) if exception else "",
         }
 
         if config.save_body_enabled:

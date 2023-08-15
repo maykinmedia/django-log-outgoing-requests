@@ -1,14 +1,14 @@
 import logging
 from datetime import datetime
-from typing import Union
+from typing import Optional, Union
 
 from requests.models import PreparedRequest, Response
 
 
 class RequestLogRecord(logging.LogRecord):
     requested_at: datetime
-    req: PreparedRequest | None
-    res: Response | None
+    req: Optional[PreparedRequest]
+    res: Optional[Response]
 
 
 AnyLogRecord = Union[logging.LogRecord, RequestLogRecord]
