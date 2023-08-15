@@ -1,31 +1,33 @@
-import logging
 from contextlib import contextmanager
-
-from django.utils import timezone
 
 from requests import RequestException, Session
 
-logger = logging.getLogger("requests")
+from . import logger
 
 
 def hook_requests_logging(response, *args, **kwargs):
     """
     A hook for requests library in order to add extra data to the logs
     """
-    extra = {"requested_at": timezone.now(), "req": response.request, "res": response}
-    logger.debug("Outgoing request", extra=extra)
+    logger.debug(
+        "Outgoing request",
+        extra={
+            "_is_log_outgoing_requests": True,
+            "req": response.request,
+            "res": response,
+        },
+    )
 
 
 @contextmanager
 def log_errors():
-    timestamp = timezone.now()
     try:
         yield
     except RequestException as exc:
         logger.debug(
             "Outgoing request error",
             exc_info=exc,
-            extra={"requested_at": timestamp, "req": exc.request, "res": exc.response},
+            extra={"_is_log_outgoing_requests": True},
         )
         raise
 

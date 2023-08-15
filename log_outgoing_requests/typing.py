@@ -1,21 +1,22 @@
 import logging
-from datetime import datetime
-from typing import Optional, Union
+from types import TracebackType
+from typing import Optional, Tuple, Type, Union
 
+from requests import RequestException
 from requests.models import PreparedRequest, Response
 
 
 class RequestLogRecord(logging.LogRecord):
-    requested_at: datetime
     req: Optional[PreparedRequest]
-    res: Optional[Response]
+    res: Response
 
 
-AnyLogRecord = Union[logging.LogRecord, RequestLogRecord]
+class ErrorRequestLogRecord(logging.LogRecord):
+    exc_info: Tuple[Type[BaseException], RequestException, Optional[TracebackType]]
+
+
+AnyLogRecord = Union[logging.LogRecord, RequestLogRecord, ErrorRequestLogRecord]
 
 
 def is_request_log_record(record: AnyLogRecord) -> bool:
-    attrs = ("requested_at", "req", "res")
-    if any(not hasattr(record, attr) for attr in attrs):
-        return False
-    return True
+    return getattr(record, "_is_log_outgoing_requests", False)

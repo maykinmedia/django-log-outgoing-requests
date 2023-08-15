@@ -50,6 +50,7 @@ the custom handler to save records to the database.
         "formatters": {
             #...,
             "outgoing_requests": {"()": HttpFormatter},
+            # optionally provide the 'format' kwarg, like with the default formatter.
         },
         "handlers": {
             #...,
@@ -66,7 +67,7 @@ the custom handler to save records to the database.
         },
         "loggers": {
             #...,
-            "requests": {  # the logger name must be 'requests'
+            "log_outgoing_requests": {  # the logger name must be 'log_outgoing_requests'
                 "handlers": ["log_outgoing_requests", "save_outgoing_requests"],
                 "level": "DEBUG",
                 "propagate": True,

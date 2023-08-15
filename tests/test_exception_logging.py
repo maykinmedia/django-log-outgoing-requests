@@ -12,7 +12,7 @@ from log_outgoing_requests.models import OutgoingRequestsLog
 def test_invalid_dns_name_error(minimal_settings, caplog):
     # use bogus DNS name that should not resolve anywhere. We want the real requests
     # behaviour here with the exact exceptions raised.
-    caplog.set_level(logging.DEBUG, logger="requests")
+    caplog.set_level(logging.DEBUG, logger="log_outgoing_requests")
     with pytest.raises(RequestException):
         requests.get("https://e57f27db-ef2f-4475-98e8-cb3a4409cb3f")
 
@@ -21,7 +21,7 @@ def test_invalid_dns_name_error(minimal_settings, caplog):
 
 
 def test_any_requests_exception_logged(minimal_settings, caplog, requests_mock):
-    caplog.set_level(logging.DEBUG, logger="requests")
+    caplog.set_level(logging.DEBUG, logger="log_outgoing_requests")
 
     # use locally scoped exception to check that the error handling mechanism can handle
     # any requests.RequestException
@@ -40,7 +40,7 @@ def test_any_requests_exception_logged(minimal_settings, caplog, requests_mock):
 
 
 def test_properly_emit_exception_logs(prepared_request, minimal_settings, caplog):
-    caplog.set_level(logging.DEBUG, logger="requests")
+    caplog.set_level(logging.DEBUG, logger="log_outgoing_requests")
     formatter = HttpFormatter()
 
     with pytest.raises(RequestException):
@@ -55,7 +55,7 @@ def test_properly_emit_exception_logs(prepared_request, minimal_settings, caplog
 
 
 def test_properly_format_http_error_responses(minimal_settings, caplog, requests_mock):
-    caplog.set_level(logging.DEBUG, logger="requests")
+    caplog.set_level(logging.DEBUG, logger="log_outgoing_requests")
     requests_mock.get(
         "https://example.com", status_code=500, reason="Internal Server Error"
     )

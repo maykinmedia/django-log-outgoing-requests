@@ -51,7 +51,7 @@ def test_data_is_logged(requests_mock, request_mock_kwargs, caplog):
 
     records = caplog.records
     assert records[1].levelname == "DEBUG"
-    assert records[1].name == "requests"
+    assert records[1].name == "log_outgoing_requests"
     assert records[1].msg == "Outgoing request"
 
 
@@ -170,7 +170,7 @@ def test_disable_save_db(request_mock_kwargs, request_variants, caplog, settings
             # data is logged
             records = caplog.records
             assert records[1].levelname == "DEBUG"
-            assert records[1].name == "requests"
+            assert records[1].name == "log_outgoing_requests"
             assert records[1].msg == "Outgoing request"
 
             # data is not saved

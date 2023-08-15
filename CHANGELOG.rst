@@ -5,6 +5,13 @@ Changelog
 0.5.0 (development)
 ===================
 
+**💥 Breaking changes**
+
+* This library now logs to the "log_outgoing_requests" logger instead of "requests".
+  Update your ``settings.LOGGING["loggers"]`` accordingly.
+
+Other changes
+
 * [#15] Ensure that requests are logged when request errors occur
 * [#11] Add changelog file
 
