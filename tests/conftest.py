@@ -1,6 +1,8 @@
 """Global pytest fixtures"""
 
 import pytest
+from requests.models import Request
+from requests.sessions import Session
 
 from log_outgoing_requests.datastructures import ContentType
 
@@ -18,6 +20,26 @@ def default_settings(settings):
         ContentType(pattern="text/*", default_encoding="utf-8"),
     ]
     return settings
+
+
+@pytest.fixture
+def minimal_settings(settings, mocker):
+    settings.LOG_OUTGOING_REQUESTS_DB_SAVE = False
+    settings.LOG_OUTGOING_REQUESTS_EMIT_BODY = False
+    # can't seem to actually modifiy settings.LOGGING to exclude the handler, since
+    # logging is configured in django's setup() phase and is then never run again.
+    # Additionally, we can't mock the solo model, since it's a local import...
+    mocker.patch(
+        "log_outgoing_requests.handlers.DatabaseOutgoingRequestsHandler.emit",
+    )
+
+
+@pytest.fixture
+def prepared_request():
+    # taken from requests.sessions.request
+    req = Request(method="GET", url="https://example.com")
+    session = Session()
+    return session.prepare_request(req)
 
 
 #
