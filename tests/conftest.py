@@ -1,6 +1,8 @@
 """Global pytest fixtures"""
 
 import pytest
+from requests.models import Request
+from requests.sessions import Session
 
 from log_outgoing_requests.datastructures import ContentType
 
@@ -30,6 +32,14 @@ def minimal_settings(settings, mocker):
     mocker.patch(
         "log_outgoing_requests.handlers.DatabaseOutgoingRequestsHandler.emit",
     )
+
+
+@pytest.fixture
+def prepared_request():
+    # taken from requests.sessions.request
+    req = Request(method="GET", url="https://example.com")
+    session = Session()
+    return session.prepare_request(req)
 
 
 #
