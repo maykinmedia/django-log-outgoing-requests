@@ -20,6 +20,12 @@ def default_settings(settings):
     return settings
 
 
+@pytest.fixture
+def minimal_settings(settings):
+    settings.LOG_OUTGOING_REQUESTS_DB_SAVE = False
+    settings.LOG_OUTGOING_REQUESTS_EMIT_BODY = False
+
+
 #
 # requests data
 #
