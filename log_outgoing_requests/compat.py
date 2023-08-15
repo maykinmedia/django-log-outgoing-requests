@@ -65,3 +65,16 @@ __all__ = ["parse_header_parameters"]
 def format_exception(exception: BaseException):
     t, e, tb = type(exception), exception, exception.__traceback__
     return traceback.format_exception(t, e, tb)
+
+
+# Celery compat, in case celery is not installed
+try:
+    from celery import shared_task
+except ImportError:
+
+    def shared_task(func):
+        class NoOpTask:
+            def apply_async(self, *args, **kwargs):
+                pass
+
+        return NoOpTask()

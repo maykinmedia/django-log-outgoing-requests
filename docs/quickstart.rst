@@ -7,6 +7,7 @@ Requirements
 
 * Python 3.8 or newer
 * Django 3.2 or newer
+* Optional: celery
 
 Additional requirements are installed along with the package.
 
@@ -23,6 +24,9 @@ Installation
     project's ``settings.py``.
 
 #. Run ``python manage.py migrate`` to create the necessary database tables
+
+If celery is installed in your environment, then the task to reset the admin
+configuration is automatically enabled.
 
 Configuration
 =============
@@ -113,4 +117,4 @@ be visible via *Admin* > *Outgoing request logs* > *Outgoing request logs*.
 Via *Admin* > *Outgoing request logs* > *Outgoing request log configuration* you can
 specify/override some settings that influence the logging behaviour.
 
-.. _`documentation`: https://docs.djangoproject.com/en/4.1/topics/logging/
+.. _`documentation`: https://docs.djangoproject.com/en/4.2/topics/logging/

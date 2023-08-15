@@ -1,5 +1,4 @@
-from celery import shared_task
-
+from .compat import shared_task
 from .constants import SaveLogsChoice
 
 

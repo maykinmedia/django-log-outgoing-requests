@@ -54,8 +54,14 @@ class LogOutgoingRequestsConf(AppConf):
 
     RESET_DB_SAVE_AFTER = 60
     """
-    If the config has been updated, reset the database logging after the number of
-    minutes.
+    If the config has been updated, reset the database logging after the specified
+    number of minutes.
 
-    NOTE: this relies on Celery being installed, an optional dependency.
+    To protect against unintended logging of potentially sensitive data after debugging,
+    this helps in resetting the "save to DB" configuration option. It resets back to
+    "use the default from settings".
+
+    If the value is falsy (including zero), then no reset takes place at all.
+
+    .. note:: this requires Celery to be installed, an optional dependency.
     """
