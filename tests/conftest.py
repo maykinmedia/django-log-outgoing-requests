@@ -21,9 +21,15 @@ def default_settings(settings):
 
 
 @pytest.fixture
-def minimal_settings(settings):
+def minimal_settings(settings, mocker):
     settings.LOG_OUTGOING_REQUESTS_DB_SAVE = False
     settings.LOG_OUTGOING_REQUESTS_EMIT_BODY = False
+    # can't seem to actually modifiy settings.LOGGING to exclude the handler, since
+    # logging is configured in django's setup() phase and is then never run again.
+    # Additionally, we can't mock the solo model, since it's a local import...
+    mocker.patch(
+        "log_outgoing_requests.handlers.DatabaseOutgoingRequestsHandler.emit",
+    )
 
 
 #
