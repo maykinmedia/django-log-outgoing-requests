@@ -1,8 +1,9 @@
 import logging
+from contextlib import contextmanager
 
 from django.utils import timezone
 
-from requests import Session
+from requests import RequestException, Session
 
 logger = logging.getLogger("requests")
 
@@ -13,6 +14,20 @@ def hook_requests_logging(response, *args, **kwargs):
     """
     extra = {"requested_at": timezone.now(), "req": response.request, "res": response}
     logger.debug("Outgoing request", extra=extra)
+
+
+@contextmanager
+def log_errors():
+    timestamp = timezone.now()
+    try:
+        yield
+    except RequestException as exc:
+        logger.debug(
+            "Outgoing request error",
+            exc_info=exc,
+            extra={"requested_at": timestamp, "req": exc.request, "res": exc.response},
+        )
+        raise
 
 
 def install_outgoing_requests_logging():
@@ -30,6 +45,7 @@ def install_outgoing_requests_logging():
 
     def new_request(self, *args, **kwargs):
         self.hooks["response"].append(hook_requests_logging)
-        return self._lor_initial_request(*args, **kwargs)
+        with log_errors():
+            return self._lor_initial_request(*args, **kwargs)
 
     Session.request = new_request
