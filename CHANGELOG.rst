@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.5.1 (2023-08-17)
+==================
+
+Fixed a bug causing request logging to happen multiple times.
+
 0.5.0 (2023-08-15)
 ==================
 
