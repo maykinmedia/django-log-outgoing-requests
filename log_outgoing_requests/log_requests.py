@@ -46,7 +46,8 @@ def install_outgoing_requests_logging():
     Session._lor_initial_request = Session.request  # type: ignore
 
     def new_request(self, *args, **kwargs):
-        self.hooks["response"].append(hook_requests_logging)
+        if hook_requests_logging not in self.hooks["response"]:
+            self.hooks["response"].append(hook_requests_logging)
         with log_errors():
             return self._lor_initial_request(*args, **kwargs)
 
