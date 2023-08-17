@@ -56,6 +56,21 @@ def test_data_is_logged(requests_mock, request_mock_kwargs, caplog):
 
 
 @pytest.mark.django_db
+def test_log_only_once(requests_mock, request_mock_kwargs, caplog):
+    requests_mock.get("https://example.com", status_code=200)
+
+    with caplog.at_level(logging.DEBUG, logger="log_outgoing_requests"):
+        with requests.Session() as session:
+            # 2 calls -> expect 2 log records and 2 DB records
+            session.get("https://example.com")
+            session.get("https://example.com")
+
+    assert len(caplog.records) == 2
+    db_records = OutgoingRequestsLog.objects.all()
+    assert db_records.count() == 2
+
+
+@pytest.mark.django_db
 @freeze_time("2021-10-18 13:00:00")
 def test_data_is_saved(request_mock_kwargs, request_variants, expected_headers):
     for method, request_func, request_mock in request_variants:
