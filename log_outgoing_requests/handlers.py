@@ -2,6 +2,7 @@
 # The handler is loaded eagerly at django startup when configuring settings.
 import logging
 import time
+from contextlib import contextmanager
 from datetime import timedelta
 from typing import Optional, cast
 from urllib.parse import urlparse
@@ -21,6 +22,14 @@ from .typing import (
 logger = logging.getLogger(__name__)
 
 
+@contextmanager
+def supress_errors():
+    try:
+        yield
+    except Exception as exc:
+        logger.error("Could not persist log record to DB", exc_info=exc)
+
+
 class DatabaseOutgoingRequestsHandler(logging.Handler):
     """
     Save the log record to the database if conditions are met.
@@ -35,6 +44,7 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
     If any of the conditions don't match, then the body is omitted.
     """
 
+    @supress_errors()
     def emit(self, record: AnyLogRecord):
         from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
         from .utils import process_body
