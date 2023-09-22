@@ -257,3 +257,19 @@ def test_content_length_exceeded(request_mock_kwargs, request_variants, settings
         request_log = OutgoingRequestsLog.objects.last()
 
         assert bytes(request_log.res_body) == b""
+
+
+def test_unexpected_exceptions_do_not_crash_entire_application(mocker, requests_mock):
+    # let's pretend that get_solo is broken, perhaps because the cache is not reachable...
+    mocker.patch(
+        "solo.models.SingletonModel.get_solo",
+        side_effect=Exception("Oh no, solo broke!"),
+    )
+    requests_mock.get("https://example.com")
+
+    try:
+        requests.get("https://example.com")
+    except Exception:
+        pytest.fail(
+            "Regular operation should not fatally crash because of logging issues."
+        )
