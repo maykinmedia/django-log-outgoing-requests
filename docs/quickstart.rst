@@ -96,6 +96,10 @@ you likely want to apply the following non-default settings:
     From a security and privacy perspective, we advise not enabling saving to the
     database by default via Django settings and instead rely on runtime configuration.
 
+    If Celery is installed but not configured in your environment, ``LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER`` 
+    (which defines if/when database logging is reset after changes to the library config) should
+    be set to ``None``.
+
 See :ref:`reference_settings` for all available settings and their meaning.
 
 Usage
