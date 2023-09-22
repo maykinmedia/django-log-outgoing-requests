@@ -2,6 +2,15 @@
 Changelog
 =========
 
+0.5.2 (2023-09-22)
+==================
+
+Improved robustness after observing (likely) an APM bug.
+
+Crashes when trying to save the log records to the database are now suppressed. This
+means you lose the log record, but the application itself should continue to function
+properly.
+
 0.5.1 (2023-08-17)
 ==================
 
