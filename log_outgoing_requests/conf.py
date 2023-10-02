@@ -52,6 +52,12 @@ class LogOutgoingRequestsConf(AppConf):
     database, but the body will be missing.
     """
 
+    MAX_AGE = 1
+    """
+    The maximum age (in days) of request logs, after which they are deleted (via a Celery
+    task, Django management command, or the like).
+    """
+
     RESET_DB_SAVE_AFTER = 60
     """
     If the config has been updated, reset the database logging after the specified

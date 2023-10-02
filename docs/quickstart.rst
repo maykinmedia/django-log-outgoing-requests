@@ -85,6 +85,7 @@ you likely want to apply the following non-default settings:
     LOG_OUTGOING_REQUESTS_DB_SAVE = True # save logs enabled/disabled based on the boolean value
     LOG_OUTGOING_REQUESTS_DB_SAVE_BODY = True # save request/response body
     LOG_OUTGOING_REQUESTS_EMIT_BODY = True # log request/response body
+    LOG_OUTGOING_REQUESTS_MAX_AGE = 1 # delete requests older than 1 day
 
 .. note::
 
@@ -99,6 +100,9 @@ you likely want to apply the following non-default settings:
     If Celery is installed but not configured in your environment, ``LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER`` 
     (which defines if/when database logging is reset after changes to the library config) should
     be set to ``None``.
+
+    The library provides a Django management command as well as a Celery task to delete
+    logs which are older than a specified time (by default, 1 day).
 
 See :ref:`reference_settings` for all available settings and their meaning.
 

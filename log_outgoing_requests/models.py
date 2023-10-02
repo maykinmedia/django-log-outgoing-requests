@@ -1,9 +1,11 @@
 import logging
+from datetime import timedelta
 from typing import Union
 from urllib.parse import urlparse
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -14,6 +16,17 @@ from .config_reset import schedule_config_reset
 from .constants import SaveLogsChoice
 
 logger = logging.getLogger(__name__)
+
+
+class OutgoingRequestsLogQueryset(models.QuerySet):
+    def prune(self) -> int:
+        max_age = settings.LOG_OUTGOING_REQUESTS_MAX_AGE
+        if max_age is None:
+            return 0
+
+        now = timezone.now()
+        num_deleted, _ = self.filter(timestamp__lt=now - timedelta(max_age)).delete()
+        return num_deleted
 
 
 class OutgoingRequestsLog(models.Model):
@@ -107,6 +120,8 @@ class OutgoingRequestsLog(models.Model):
         verbose_name=_("Trace"),
         help_text=_("Text providing information in case of request failure."),
     )
+
+    objects = OutgoingRequestsLogQueryset.as_manager()
 
     class Meta:
         verbose_name = _("Outgoing request log")

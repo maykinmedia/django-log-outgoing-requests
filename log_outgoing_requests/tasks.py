@@ -1,5 +1,18 @@
+import logging
+
 from .compat import shared_task
 from .constants import SaveLogsChoice
+
+logger = logging.getLogger(__name__)
+
+
+@shared_task
+def prune_logs():
+    from .models import OutgoingRequestsLog
+
+    num_deleted = OutgoingRequestsLog.objects.prune()
+    logger.info("Deleted %d outgoing request log(s)", num_deleted)
+    return num_deleted
 
 
 @shared_task
