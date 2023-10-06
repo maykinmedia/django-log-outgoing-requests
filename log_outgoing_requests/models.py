@@ -30,9 +30,8 @@ class OutgoingRequestsLogQueryset(models.QuerySet):
 
 
 class OutgoingRequestsLog(models.Model):
-    url = models.URLField(
+    url = models.TextField(
         verbose_name=_("URL"),
-        max_length=1000,
         help_text=_("The url of the outgoing request."),
     )
 
