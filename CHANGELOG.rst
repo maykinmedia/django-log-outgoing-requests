@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.6.0 (2023-12-11)
+==================
+
+Small quality of life release
+
+* Added Celery task and management command to prune log records.
+* [#29] Changed request URL-field to textfield to handle arbitrary URL lengths.
+
 0.5.2 (2023-09-22)
 ==================
 
