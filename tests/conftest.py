@@ -70,6 +70,25 @@ def request_mock_kwargs():
 
 
 @pytest.fixture
+def request_mock_kwargs_error():
+    return {
+        "url": "http://example.com:8000/some-path-that-doesnt-exist?version=2.0",
+        "status_code": 404,
+        "content": b"404 Not Found",
+        "request_headers": {
+            "Authorization": "test",
+            "Content-Type": "application/json",
+            "Content-Length": "24",
+        },
+        "headers": {
+            "Date": "Tue, 21 Mar 2023 15:24:08 GMT",
+            "Content-Type": "text/plain",
+            "Content-Length": "13",
+        },
+    }
+
+
+@pytest.fixture
 def request_mock_kwargs_binary():
     return {
         "url": "http://example.com:8000/some-path?version=2.0",
