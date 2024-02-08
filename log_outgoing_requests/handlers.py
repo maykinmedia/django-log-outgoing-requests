@@ -92,14 +92,18 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
             "url": request.url if request else "(unknown)",
             "hostname": parsed_url.netloc if parsed_url else "(unknown)",
             "params": parsed_url.params if parsed_url else "(unknown)",
-            "status_code": response.status_code if response else None,
+            "status_code": response.status_code if response is not None else None,
             "method": request.method if request else "(unknown)",
             "timestamp": timestamp,
-            "response_ms": int(response.elapsed.total_seconds() * 1000)
-            if response
-            else 0,
+            "response_ms": (
+                int(response.elapsed.total_seconds() * 1000)
+                if response is not None
+                else 0
+            ),
             "req_headers": self.format_headers(scrubbed_req_headers),
-            "res_headers": self.format_headers(response.headers if response else {}),
+            "res_headers": self.format_headers(
+                response.headers if response is not None else {}
+            ),
             "trace": "\n".join(format_exception(exception)) if exception else "",
         }
 
@@ -121,7 +125,7 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
 
             # check response
             if (
-                response
+                response is not None
                 and (
                     processed_response_body := process_body(response, config)
                 ).allow_saving_to_db
