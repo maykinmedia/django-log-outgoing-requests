@@ -2,6 +2,13 @@
 Changelog
 =========
 
+0.6.1 (2024-02-12)
+==================
+
+Small bugfix release
+
+* [#34] Properly log data for error responses
+
 0.6.0 (2023-12-11)
 ==================
 
