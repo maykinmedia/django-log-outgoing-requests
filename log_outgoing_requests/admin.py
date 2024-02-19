@@ -9,6 +9,11 @@ from solo.admin import SingletonModelAdmin
 from .conf import settings
 from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
 
+try:
+    import celery
+except ImportError:
+    celery = None
+
 
 @admin.register(OutgoingRequestsLog)
 class OutgoingRequestsLogAdmin(admin.ModelAdmin):
@@ -128,3 +133,9 @@ class ConfigAdminForm(forms.ModelForm):
 @admin.register(OutgoingRequestsLogConfig)
 class OutgoingRequestsLogConfigAdmin(SingletonModelAdmin):
     form = ConfigAdminForm
+
+    def get_fields(self, request, obj=None, *args, **kwargs):
+        fields = super().get_fields(request, obj=obj, *args, **kwargs)
+        if celery is None and (obj and not obj.reset_db_save_after):
+            fields.remove("reset_db_save_after")
+        return fields

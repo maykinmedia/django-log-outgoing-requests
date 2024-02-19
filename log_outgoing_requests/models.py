@@ -206,13 +206,23 @@ class OutgoingRequestsLogConfig(SingletonModel):
             "If 'Require content length' is not checked, this setting has no effect."
         ),
     )
+    reset_db_save_after = models.PositiveIntegerField(
+        _("Reset saving logs in database after"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "If configured, after the config has been updated, reset the database logging "
+            "after the specified number of minutes. Note: this overrides the "
+            "LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER environment variable."
+        ),
+    )
 
     class Meta:
         verbose_name = _("Outgoing request log configuration")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        schedule_config_reset()
+        schedule_config_reset(self)
 
     @property
     def save_logs_enabled(self):
