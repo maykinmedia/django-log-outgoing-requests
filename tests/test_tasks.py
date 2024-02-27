@@ -101,7 +101,7 @@ def test_schedule_config_schedules_celery_task(settings, mocker):
     mock_task = mocker.patch(
         "log_outgoing_requests.config_reset.reset_config.apply_async"
     )
-    schedule_config_reset(config)
+    schedule_config_reset(config.reset_db_save_after)
     mock_task.assert_called_once_with(countdown=60)
 
 
@@ -114,7 +114,7 @@ def test_schedule_config_schedules_celery_task_use_db_value(settings, mocker):
     mock_task = mocker.patch(
         "log_outgoing_requests.config_reset.reset_config.apply_async"
     )
-    schedule_config_reset(config)
+    schedule_config_reset(config.reset_db_save_after)
     mock_task.assert_called_once_with(countdown=120)
 
 
@@ -125,7 +125,6 @@ def test_schedule_config_schedules_celery_task_after_save_use_db_value(
 ):
     settings.LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER = 1
     config = OutgoingRequestsLogConfig.get_solo()
-    config.reset_db_save_after = 2
     mock_task = mocker.patch(
         "log_outgoing_requests.config_reset.reset_config.apply_async"
     )

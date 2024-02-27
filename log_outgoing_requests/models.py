@@ -210,10 +210,14 @@ class OutgoingRequestsLogConfig(SingletonModel):
         _("Reset saving logs in database after"),
         null=True,
         blank=True,
+        validators=[MinValueValidator(1)],
         help_text=_(
             "If configured, after the config has been updated, reset the database logging "
             "after the specified number of minutes. Note: this overrides the "
-            "LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER environment variable."
+            "LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER environment variable. Additionally, "
+            "depending on the broker that is used, if this duration is too long "
+            "the key for the reset task might have expired before that time. So make sure not to "
+            "set too large a value for the reset."
         ),
     )
 
@@ -222,7 +226,7 @@ class OutgoingRequestsLogConfig(SingletonModel):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        schedule_config_reset(self)
+        schedule_config_reset(self.reset_db_save_after)
 
     @property
     def save_logs_enabled(self):
