@@ -50,7 +50,7 @@ To install and develop the library locally, use:
 
 .. _`requests`: https://pypi.org/project/requests/
 
-.. _`documentation`: https://docs.djangoproject.com/en/4.1/topics/logging/
+.. _`documentation`: https://django-log-outgoing-requests.readthedocs.io/en/latest/
 
 .. |build-status| image:: https://github.com/maykinmedia/django-log-outgoing-requests/workflows/Run%20CI/badge.svg
     :alt: Build status
