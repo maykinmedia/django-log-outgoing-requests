@@ -94,10 +94,40 @@ def test_saving_config_schedules_config_reset(mocker):
 
 
 @pytest.mark.skipif(not has_celery, reason="Celery is optional dependency")
+@pytest.mark.django_db
 def test_schedule_config_schedules_celery_task(settings, mocker):
+    settings.LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER = 1
+    config = OutgoingRequestsLogConfig.get_solo()
     mock_task = mocker.patch(
         "log_outgoing_requests.config_reset.reset_config.apply_async"
     )
-    settings.LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER = 1
-    schedule_config_reset()
+    schedule_config_reset(config.reset_db_save_after)
     mock_task.assert_called_once_with(countdown=60)
+
+
+@pytest.mark.skipif(not has_celery, reason="Celery is optional dependency")
+@pytest.mark.django_db
+def test_schedule_config_schedules_celery_task_use_db_value(settings, mocker):
+    settings.LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER = 1
+    config = OutgoingRequestsLogConfig.get_solo()
+    config.reset_db_save_after = 2
+    mock_task = mocker.patch(
+        "log_outgoing_requests.config_reset.reset_config.apply_async"
+    )
+    schedule_config_reset(config.reset_db_save_after)
+    mock_task.assert_called_once_with(countdown=120)
+
+
+@pytest.mark.skipif(not has_celery, reason="Celery is optional dependency")
+@pytest.mark.django_db
+def test_schedule_config_schedules_celery_task_after_save_use_db_value(
+    settings, mocker
+):
+    settings.LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER = 1
+    config = OutgoingRequestsLogConfig.get_solo()
+    mock_task = mocker.patch(
+        "log_outgoing_requests.config_reset.reset_config.apply_async"
+    )
+    config.reset_db_save_after = 4
+    config.save()
+    mock_task.assert_called_once_with(countdown=240)
