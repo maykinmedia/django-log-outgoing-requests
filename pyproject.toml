@@ -1,0 +1,125 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-log-outgoing-requests"
+version = "0.6.1"
+description = "Log outgoing requests made by the requests python library"
+authors = [
+    {name = "Maykin Media", email = "support@maykinmedia.nl"}
+]
+readme = "README.rst"
+license = {file = "LICENSE"}
+keywords = ["Django", "logging", "requests"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.2",
+    "Intended Audience :: Developers",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "django>=3.2",
+    "requests",
+    "django-appconf",
+    "django-solo",
+]
+
+[project.urls]
+Homepage = "https://github.com/maykinmedia/django-log-outgoing-requests"
+Documentation = "http://django-log-outgoing-requests.readthedocs.io/en/latest/"
+"Bug Tracker" = "https://github.com/maykinmedia/django-log-outgoing-requests/issues"
+"Source Code" = "https://github.com/maykinmedia/django-log-outgoing-requests"
+Changelog = "https://github.com/maykinmedia/django-log-outgoing-requests/blob/main/CHANGELOG.rst"
+
+[project.optional-dependencies]
+celery = [
+    "celery",
+]
+tests = [
+    "pytest",
+    "pytest-django",
+    "pytest-mock",
+    "pyquery",
+    "tox",
+    "isort",
+    "black",
+    "flake8",
+    "freezegun",
+    "requests-mock",
+]
+coverage = [
+    "pytest-cov",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+release = [
+    "bump-my-version",
+]
+
+[tool.setuptools.packages.find]
+include = ["log_outgoing_requests*"]
+namespaces = false
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+known_django = "django"
+known_first_party="log_outgoing_requests"
+sections=["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip = ["env", ".tox", ".history"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "error:DateTimeField .* received a naive datetime:RuntimeWarning:django.db.models.fields",
+]
+DJANGO_SETTINGS_MODULE = "testapp.settings"
+
+[tool.bumpversion]
+current_version = "0.6.1"
+files = [
+    {filename = "pyproject.toml"},
+    {filename = "README.rst"},
+    {filename = "log_outgoing_requests/locale/nl/LC_MESSAGES/django.po"},
+    {filename = "docs/conf.py"},
+]
+
+[tool.coverage.run]
+branch = true
+source = [
+    "log_outgoing_requests"
+]
+omit = [
+    "log_outgoing_requests/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "if (typing\\.)?TYPE_CHECKING:",
+    "@(typing\\.)?overload",
+    "class .*\\(.*Protocol.*\\):",
+    "@(abc\\.)?abstractmethod",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+    "pass",
+]
+omit = [
+    "log_outgoing_requests/migrations/*",
+]
+
+[tool.coverage.html]
+directory = "cover"
