@@ -32,6 +32,7 @@ Features
 
    quickstart
    reference
+   changelog
 
 
 Indices and tables

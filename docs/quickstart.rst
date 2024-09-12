@@ -7,6 +7,7 @@ Requirements
 
 * Python 3.8 or newer
 * Django 3.2 or newer
+* Optional: celery
 
 Additional requirements are installed along with the package.
 
@@ -19,13 +20,16 @@ Installation
 
         pip install django-log-outgoing-requests
 
-#.  Add ``log_outgoing_requests`` to ``INSTALLED_APPS`` in your Django 
+#.  Add ``log_outgoing_requests`` to ``INSTALLED_APPS`` in your Django
     project's ``settings.py``.
 
 #.  Add ``path("admin/log_outgoing_requests/", include("log_outgoing_requests.urls")),`` 
     in your Django project's ``urls.py``.
 
 #. Run ``python manage.py migrate`` to create the necessary database tables
+
+If celery is installed in your environment, then the task to reset the admin
+configuration is automatically enabled.
 
 Configuration
 =============
@@ -49,6 +53,7 @@ the custom handler to save records to the database.
         "formatters": {
             #...,
             "outgoing_requests": {"()": HttpFormatter},
+            # optionally provide the 'format' kwarg, like with the default formatter.
         },
         "handlers": {
             #...,
@@ -65,7 +70,7 @@ the custom handler to save records to the database.
         },
         "loggers": {
             #...,
-            "requests": {  # the logger name must be 'requests'
+            "log_outgoing_requests": {  # the logger name must be 'log_outgoing_requests'
                 "handlers": ["log_outgoing_requests", "save_outgoing_requests"],
                 "level": "DEBUG",
                 "propagate": True,
@@ -83,6 +88,7 @@ you likely want to apply the following non-default settings:
     LOG_OUTGOING_REQUESTS_DB_SAVE = True # save logs enabled/disabled based on the boolean value
     LOG_OUTGOING_REQUESTS_DB_SAVE_BODY = True # save request/response body
     LOG_OUTGOING_REQUESTS_EMIT_BODY = True # log request/response body
+    LOG_OUTGOING_REQUESTS_MAX_AGE = 1 # delete requests older than 1 day
 
 .. note::
 
@@ -93,6 +99,14 @@ you likely want to apply the following non-default settings:
 
     From a security and privacy perspective, we advise not enabling saving to the
     database by default via Django settings and instead rely on runtime configuration.
+
+    If Celery is installed but not configured in your environment, ``LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER``
+    (which defines if/when database logging is reset after changes to the library config) should
+    be set to ``None``. The duration for **Reset saving logs in database after** can also be
+    configured from the admin and will override the value of the environment variable if defined.
+
+    The library provides a Django management command as well as a Celery task to delete
+    logs which are older than a specified time (by default, 1 day).
 
 See :ref:`reference_settings` for all available settings and their meaning.
 
@@ -116,4 +130,4 @@ be visible via *Admin* > *Outgoing request logs* > *Outgoing request logs*.
 Via *Admin* > *Outgoing request logs* > *Outgoing request log configuration* you can
 specify/override some settings that influence the logging behaviour.
 
-.. _`documentation`: https://docs.djangoproject.com/en/4.1/topics/logging/
+.. _`documentation`: https://docs.djangoproject.com/en/4.2/topics/logging/

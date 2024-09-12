@@ -113,9 +113,9 @@ def check_content_type(content_type: str) -> bool:
     For patterns containing a wildcard ("text/*"), check if `content_type.pattern`
     is a substring of any pattern contained in the list.
     """
-    allowed_content_types: Iterable[
-        ContentType
-    ] = settings.LOG_OUTGOING_REQUESTS_CONTENT_TYPES
+    allowed_content_types: Iterable[ContentType] = (
+        settings.LOG_OUTGOING_REQUESTS_CONTENT_TYPES
+    )
     regular_patterns = [
         item.pattern for item in allowed_content_types if not item.pattern.endswith("*")
     ]
@@ -133,9 +133,9 @@ def get_default_encoding(content_type_pattern: str) -> str:
     """
     Get the default encoding for the `ContentType` with the associated pattern.
     """
-    allowed_content_types: Iterable[
-        ContentType
-    ] = settings.LOG_OUTGOING_REQUESTS_CONTENT_TYPES
+    allowed_content_types: Iterable[ContentType] = (
+        settings.LOG_OUTGOING_REQUESTS_CONTENT_TYPES
+    )
 
     regular_types = [
         item for item in allowed_content_types if not item.pattern.endswith("*")

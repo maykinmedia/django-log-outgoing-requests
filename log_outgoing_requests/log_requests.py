@@ -1,18 +1,35 @@
-import logging
+from contextlib import contextmanager
 
-from django.utils import timezone
+from requests import RequestException, Session
 
-from requests import Session
-
-logger = logging.getLogger("requests")
+from . import logger
 
 
 def hook_requests_logging(response, *args, **kwargs):
     """
     A hook for requests library in order to add extra data to the logs
     """
-    extra = {"requested_at": timezone.now(), "req": response.request, "res": response}
-    logger.debug("Outgoing request", extra=extra)
+    logger.debug(
+        "Outgoing request",
+        extra={
+            "_is_log_outgoing_requests": True,
+            "req": response.request,
+            "res": response,
+        },
+    )
+
+
+@contextmanager
+def log_errors():
+    try:
+        yield
+    except RequestException as exc:
+        logger.debug(
+            "Outgoing request error",
+            exc_info=exc,
+            extra={"_is_log_outgoing_requests": True},
+        )
+        raise
 
 
 def install_outgoing_requests_logging():
@@ -29,7 +46,9 @@ def install_outgoing_requests_logging():
     Session._lor_initial_request = Session.request  # type: ignore
 
     def new_request(self, *args, **kwargs):
-        self.hooks["response"].append(hook_requests_logging)
-        return self._lor_initial_request(*args, **kwargs)
+        if hook_requests_logging not in self.hooks["response"]:
+            self.hooks["response"].append(hook_requests_logging)
+        with log_errors():
+            return self._lor_initial_request(*args, **kwargs)
 
     Session.request = new_request

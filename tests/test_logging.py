@@ -1,6 +1,8 @@
 """Integration tests for the core functionality of the library"""
 
+import datetime
 import logging
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -8,6 +10,11 @@ from freezegun import freeze_time
 
 from log_outgoing_requests.datastructures import ContentType
 from log_outgoing_requests.models import OutgoingRequestsLog
+
+
+def set_elapsed(response, *args, **kwargs):
+    response.elapsed = datetime.timedelta(seconds=2)
+    return response
 
 
 #
@@ -51,8 +58,23 @@ def test_data_is_logged(requests_mock, request_mock_kwargs, caplog):
 
     records = caplog.records
     assert records[1].levelname == "DEBUG"
-    assert records[1].name == "requests"
+    assert records[1].name == "log_outgoing_requests"
     assert records[1].msg == "Outgoing request"
+
+
+@pytest.mark.django_db
+def test_log_only_once(requests_mock, request_mock_kwargs, caplog):
+    requests_mock.get("https://example.com", status_code=200)
+
+    with caplog.at_level(logging.DEBUG, logger="log_outgoing_requests"):
+        with requests.Session() as session:
+            # 2 calls -> expect 2 log records and 2 DB records
+            session.get("https://example.com")
+            session.get("https://example.com")
+
+    assert len(caplog.records) == 2
+    db_records = OutgoingRequestsLog.objects.all()
+    assert db_records.count() == 2
 
 
 @pytest.mark.django_db
@@ -93,6 +115,53 @@ def test_data_is_saved(request_mock_kwargs, request_variants, expected_headers):
         # response body
         assert request_log.res_content_type == "application/json"
         assert bytes(request_log.res_body) == b'{"test": "response data"}'
+        assert request_log.res_body_encoding == "utf-8"
+
+
+@pytest.mark.django_db
+@freeze_time("2021-10-18 13:00:00")
+def test_data_is_saved_for_error_response(
+    request_mock_kwargs_error, request_variants, expected_headers
+):
+    for method, request_func, request_mock in request_variants:
+        request_mock(**request_mock_kwargs_error)
+        with patch(
+            "requests.sessions.default_hooks", return_value={"response": [set_elapsed]}
+        ):
+            response = request_func(
+                request_mock_kwargs_error["url"],
+                headers=request_mock_kwargs_error["request_headers"],
+                json={"test": "request data"},
+            )
+
+        assert response.status_code == 404
+
+        request_log = OutgoingRequestsLog.objects.last()
+
+        assert request_log.method == method
+        assert request_log.status_code == 404
+        assert request_log.hostname == "example.com:8000"
+        assert request_log.params == ""
+        assert request_log.query_params == "version=2.0"
+        assert request_log.response_ms == 2000
+        assert request_log.trace == ""
+        assert str(request_log) == "example.com:8000 at 2021-10-18 13:00:00+00:00"
+        assert (
+            request_log.timestamp.strftime("%Y-%m-%d %H:%M:%S") == "2021-10-18 13:00:00"
+        )
+        # headers
+        assert request_log.req_headers == expected_headers
+        assert (
+            request_log.res_headers == "Date: Tue, 21 Mar 2023 15:24:08 GMT\n"
+            "Content-Type: text/plain\nContent-Length: 13"
+        )
+        # request body
+        assert request_log.req_content_type == "application/json"
+        assert bytes(request_log.req_body) == b'{"test": "request data"}'
+        assert request_log.req_body_encoding == "utf-8"
+        # response body
+        assert request_log.res_content_type == "text/plain"
+        assert bytes(request_log.res_body) == b"404 Not Found"
         assert request_log.res_body_encoding == "utf-8"
 
 
@@ -170,7 +239,7 @@ def test_disable_save_db(request_mock_kwargs, request_variants, caplog, settings
             # data is logged
             records = caplog.records
             assert records[1].levelname == "DEBUG"
-            assert records[1].name == "requests"
+            assert records[1].name == "log_outgoing_requests"
             assert records[1].msg == "Outgoing request"
 
             # data is not saved
@@ -242,3 +311,19 @@ def test_content_length_exceeded(request_mock_kwargs, request_variants, settings
         request_log = OutgoingRequestsLog.objects.last()
 
         assert bytes(request_log.res_body) == b""
+
+
+def test_unexpected_exceptions_do_not_crash_entire_application(mocker, requests_mock):
+    # let's pretend that get_solo is broken, perhaps because the cache is not reachable...
+    mocker.patch(
+        "solo.models.SingletonModel.get_solo",
+        side_effect=Exception("Oh no, solo broke!"),
+    )
+    requests_mock.get("https://example.com")
+
+    try:
+        requests.get("https://example.com")
+    except Exception:
+        pytest.fail(
+            "Regular operation should not fatally crash because of logging issues."
+        )

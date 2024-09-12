@@ -1,24 +1,37 @@
 import logging
+from datetime import timedelta
 from typing import Union
 from urllib.parse import urlparse
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from solo.models import SingletonModel  # type: ignore
 
 from .conf import settings
+from .config_reset import schedule_config_reset
 from .constants import SaveLogsChoice
 
 logger = logging.getLogger(__name__)
 
 
+class OutgoingRequestsLogQueryset(models.QuerySet):
+    def prune(self) -> int:
+        max_age = settings.LOG_OUTGOING_REQUESTS_MAX_AGE
+        if max_age is None:
+            return 0
+
+        now = timezone.now()
+        num_deleted, _ = self.filter(timestamp__lt=now - timedelta(max_age)).delete()
+        return num_deleted
+
+
 class OutgoingRequestsLog(models.Model):
-    url = models.URLField(
+    url = models.TextField(
         verbose_name=_("URL"),
-        max_length=1000,
         help_text=_("The url of the outgoing request."),
     )
 
@@ -107,6 +120,8 @@ class OutgoingRequestsLog(models.Model):
         help_text=_("Text providing information in case of request failure."),
     )
 
+    objects = OutgoingRequestsLogQueryset.as_manager()
+
     class Meta:
         verbose_name = _("Outgoing request log")
         verbose_name_plural = _("Outgoing request logs")
@@ -191,6 +206,27 @@ class OutgoingRequestsLogConfig(SingletonModel):
             "If 'Require content length' is not checked, this setting has no effect."
         ),
     )
+    reset_db_save_after = models.PositiveIntegerField(
+        _("Reset saving logs in database after"),
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+        help_text=_(
+            "If configured, after the config has been updated, reset the database logging "
+            "after the specified number of minutes. Note: this overrides the "
+            "LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER environment variable. Additionally, "
+            "depending on the broker that is used, if this duration is too long "
+            "the key for the reset task might have expired before that time. So make sure not to "
+            "set too large a value for the reset."
+        ),
+    )
+
+    class Meta:
+        verbose_name = _("Outgoing request log configuration")
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        schedule_config_reset(self.reset_db_save_after)
 
     @property
     def save_logs_enabled(self):
@@ -209,6 +245,3 @@ class OutgoingRequestsLogConfig(SingletonModel):
         if self.save_body == SaveLogsChoice.use_default:
             return settings.LOG_OUTGOING_REQUESTS_DB_SAVE_BODY
         return self.save_body == SaveLogsChoice.yes
-
-    class Meta:
-        verbose_name = _("Outgoing request log configuration")

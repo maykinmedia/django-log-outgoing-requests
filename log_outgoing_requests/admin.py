@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django import forms
 from django.contrib import admin
 from django.urls import reverse
@@ -9,12 +11,17 @@ from solo.admin import SingletonModelAdmin
 from .conf import settings
 from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
 
+try:
+    import celery
+except ImportError:
+    celery = None
+
 
 @admin.register(OutgoingRequestsLog)
 class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     list_display = (
         "hostname",
-        "url",
+        "truncated_url",
         "params",
         "status_code",
         "method",
@@ -113,6 +120,20 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 
     prettify_body_response.allow_tags = True
 
+    def truncated_url(self, obj):
+        parsed_url = urlparse(obj.url)
+        path = parsed_url.path
+        max_length = 200
+        path_length = len(path)
+
+        if path_length <= max_length:
+            return path
+
+        half_length = (max_length - 3) // 2
+        left_half = path[:half_length]
+        right_half = path[-half_length:]
+        return left_half + " \u2026 " + right_half
+
 
 class ConfigAdminForm(forms.ModelForm):
     class Meta:
@@ -132,3 +153,9 @@ class ConfigAdminForm(forms.ModelForm):
 @admin.register(OutgoingRequestsLogConfig)
 class OutgoingRequestsLogConfigAdmin(SingletonModelAdmin):
     form = ConfigAdminForm
+
+    def get_fields(self, request, obj=None, *args, **kwargs):
+        fields = super().get_fields(request, obj=obj, *args, **kwargs)
+        if celery is None and (obj and not obj.reset_db_save_after):
+            fields.remove("reset_db_save_after")
+        return fields

@@ -44,3 +44,18 @@ def test_formatter(
 
     assert ('{"test": "request data"}' in res) is expected
     assert ('{"test": "response data"}' in res) is expected
+
+
+def test_formatter_non_requests_exception(caplog, minimal_settings):
+    logger = logging.getLogger("log_outgoing_requests")
+    with caplog.at_level(logging.DEBUG, logger="log_outgoing_requests"):
+        logger.debug(
+            "Ignore me",
+            extra={"req": None, "res": None},
+            exc_info=Exception("Random other exception"),
+        )
+
+    record = caplog.records[0]
+    formatter = HttpFormatter()
+    res = formatter.formatMessage(record)
+    assert "-- error --" not in res
