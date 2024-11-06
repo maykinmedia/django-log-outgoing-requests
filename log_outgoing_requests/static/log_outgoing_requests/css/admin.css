@@ -8,7 +8,7 @@ body.app-log_outgoing_requests.model-outgoingrequestslog .field-request_body .re
 body.app-log_outgoing_requests.model-outgoingrequestslog .field-req_headers .readonly,
 body.app-log_outgoing_requests.model-outgoingrequestslog .field-response_body .readonly,
 body.app-log_outgoing_requests.model-outgoingrequestslog .field-res_headers .readonly {
-  white-space: pre;
+  white-space: pre-wrap;
   font-family: monospace;
   overflow: auto;
 
