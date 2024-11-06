@@ -1,10 +1,11 @@
 # NOTE: Avoid import Django specifics at the module level to prevent circular imports.
 # The handler is loaded eagerly at django startup when configuring settings.
+import json
 import logging
 import time
 from contextlib import contextmanager
 from datetime import timedelta
-from typing import Optional, cast
+from typing import Optional, cast, Dict
 from urllib.parse import urlparse
 
 from django.utils import timezone
@@ -100,9 +101,9 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
                 if response is not None
                 else 0
             ),
-            "req_headers": self.format_headers(scrubbed_req_headers),
-            "res_headers": self.format_headers(
-                response.headers if response is not None else {}
+            "req_headers": self.dumps_headers(dict(scrubbed_req_headers)),
+            "res_headers": self.dumps_headers(
+                dict(response.headers) if response is not None else {}
             ),
             "trace": "\n".join(format_exception(exception)) if exception else "",
         }
@@ -142,3 +143,9 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
 
     def format_headers(self, headers):
         return "\n".join(f"{k}: {v}" for k, v in headers.items())
+    
+    def dumps_headers(self, headers: Dict[str, str]) -> str:
+        return json.dumps(headers, indent=4)
+
+    def loads_headers(self, headers: str) -> Dict[str, str]:
+        return json.loads(headers)

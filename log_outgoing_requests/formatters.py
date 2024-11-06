@@ -1,6 +1,7 @@
+import json
 import logging
 import textwrap
-from typing import Union, cast
+from typing import Union, cast, Dict
 
 from requests import RequestException
 from requests.models import PreparedRequest, Response
@@ -69,6 +70,14 @@ def format_error(exception: RequestException) -> str:
     # we have request information, let's include it
     formatted_request = format_request(request)
     return f"{formatted_request}\n{output}"
+
+
+def dumps_headers(headers: Dict[str, str]) -> str:
+    return json.dumps(headers, indent=4)
+
+
+def loads_headers(headers: str) -> Dict[str, str]:
+    return json.loads(headers)
 
 
 class HttpFormatter(logging.Formatter):

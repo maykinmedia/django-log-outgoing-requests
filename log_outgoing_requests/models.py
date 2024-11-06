@@ -14,6 +14,7 @@ from solo.models import SingletonModel  # type: ignore
 from .conf import settings
 from .config_reset import schedule_config_reset
 from .constants import SaveLogsChoice
+from .formatters import loads_headers
 
 logger = logging.getLogger(__name__)
 
