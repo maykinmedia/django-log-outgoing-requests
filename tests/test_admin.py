@@ -156,16 +156,16 @@ def test_response_content_length_empty(admin_client):
 
     assert request_body == "-"
     assert response_body == "-"
-    assert content_length == "-"
+    assert content_length == "0"
 
 @pytest.mark.django_db
-def test_decoded_content_display(admin_client):
+def test_response_content_length_displayed(admin_client):
     """Assert the length of the content of the response is displayed"""
 
     log = OutgoingRequestsLog.objects.create(
         id=1,
-        req_body=b"I'm a lumberjack and I'm okay.",
-        res_body=b"I sleep all night and work all day.",
+        req_body=b"Test request",
+        res_body=b"Test Response",
         timestamp=timezone.now(),
     )
     url = reverse(
@@ -181,6 +181,7 @@ def test_decoded_content_display(admin_client):
     response_body = doc.find(".field-response_body .readonly").text()
     content_length = doc.find(".field-response_content_length .readonly").text()
 
-    assert request_body == "I'm a lumberjack and I'm okay."
-    assert response_body == "I sleep all night and work all day."
-    assert content_length == "35"
+    assert request_body == "Test request"
+    assert response_body == "Test Response"
+    assert content_length == "13"
+    assert content_length == log.response_content_length

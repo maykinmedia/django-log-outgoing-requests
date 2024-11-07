@@ -179,13 +179,9 @@ class OutgoingRequestsLog(models.Model):
         """
         Get Response content length by reading `len(body)`. 
         """
-        content_length = ""
-        if self.response_body_decoded:
-            content_length = str(len(self.response_body_decoded))
-        return content_length
+        return str(len(self.response_body_decoded))
 
     response_content_length.short_description = _("Content length")  # type: ignore
-
 
 def get_default_max_content_length():
     """
