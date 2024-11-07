@@ -178,13 +178,10 @@ class OutgoingRequestsLog(models.Model):
     @cached_property
     def response_content_length(self) -> str:
         """
-        Get Response content length
-        
-        Try `Content-Length` header first. If not present, try to
-        determine the size by reading `len(body)`. 
+        Get Response content length by reading `len(body)`. 
         """
-        content_length = loads_headers(self.res_headers).get("Content-Length", "")
-        if not content_length and self.response_body_decoded:
+        content_length = ""
+        if self.response_body_decoded:
             content_length = str(len(self.response_body_decoded))
         return content_length
 
