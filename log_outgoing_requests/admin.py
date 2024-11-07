@@ -2,6 +2,8 @@ from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
 from solo.admin import SingletonModelAdmin
@@ -58,6 +60,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
                     "res_content_type",
                     "res_body_encoding",
                     "response_body",
+                    "prettify_body_response",
                 )
             },
         ),
@@ -68,6 +71,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "timestamp",
         "method",
         "query_params",
+        "prettify_body_response",
         "params",
         "req_headers",
         "req_content_type",
@@ -84,6 +88,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         css = {
             "all": ("log_outgoing_requests/css/admin.css",),
         }
+        js = ("log_outgoing_requests/js/admin.js",)
 
     def has_add_permission(self, request):
         return False
@@ -99,6 +104,21 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     @admin.display(description=_("Response body"))
     def response_body(self, obj) -> str:
         return obj.response_body_decoded or "-"
+
+    def prettify_body_response(self, obj):
+        prettify_url = reverse("prettify_view")
+        original_url = reverse("original_view")
+
+        return format_html(
+            '<a class="prettify-body-response" href="{}">{}</a> | <a class="original-body-response" href="{}">{}</a><br><div class="body-response-text">{}</div>',
+            prettify_url,
+            "Prettify",
+            original_url,
+            "Original",
+            obj.res_body_encoding,
+        )
+
+    prettify_body_response.allow_tags = True
 
     def truncated_url(self, obj):
         parsed_url = urlparse(obj.url)

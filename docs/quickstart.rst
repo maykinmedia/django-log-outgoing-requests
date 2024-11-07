@@ -23,6 +23,9 @@ Installation
 #.  Add ``log_outgoing_requests`` to ``INSTALLED_APPS`` in your Django
     project's ``settings.py``.
 
+#.  Add ``path("admin/log_outgoing_requests/", include("log_outgoing_requests.urls")),`` 
+    in your Django project's ``urls.py``.
+
 #. Run ``python manage.py migrate`` to create the necessary database tables
 
 If celery is installed in your environment, then the task to reset the admin
