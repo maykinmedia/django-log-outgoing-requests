@@ -131,3 +131,56 @@ def test_list_url_is_not_trucated_under_200_chars(admin_client):
     truncated_url = doc.find(".field-truncated_url").text()
 
     assert truncated_url == "/a1b2c3d4e/some-path"
+
+
+@pytest.mark.django_db
+def test_response_content_length_empty(admin_client):
+    """Assert that the length of the content of the response is empty"""
+
+    log = OutgoingRequestsLog.objects.create(
+        id=1,
+        req_body=b"",
+        res_body=b"",
+        timestamp=timezone.now(),
+    )
+    url = reverse("admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,))
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    html = response.content.decode("utf-8")
+    doc = PyQuery(html)
+    request_body = doc.find(".field-request_body .readonly").text()
+    response_body = doc.find(".field-response_body .readonly").text()
+    content_length = doc.find(".field-response_content_length .readonly").text()
+
+    assert request_body == "-"
+    assert response_body == "-"
+    assert content_length == "-"
+
+@pytest.mark.django_db
+def test_decoded_content_display(admin_client):
+    """Assert the length of the content of the response is displayed"""
+
+    log = OutgoingRequestsLog.objects.create(
+        id=1,
+        req_body=b"I'm a lumberjack and I'm okay.",
+        res_body=b"I sleep all night and work all day.",
+        timestamp=timezone.now(),
+    )
+    url = reverse(
+        "admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,)
+    )
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    html = response.content.decode("utf-8")
+    doc = PyQuery(html)
+    request_body = doc.find(".field-request_body .readonly").text()
+    response_body = doc.find(".field-response_body .readonly").text()
+    content_length = doc.find(".field-response_content_length .readonly").text()
+
+    assert request_body == "I'm a lumberjack and I'm okay."
+    assert response_body == "I sleep all night and work all day."
+    assert content_length == "35"
