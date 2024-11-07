@@ -103,8 +103,9 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     def response_body(self, obj) -> str:
         return obj.response_body_decoded or "-"
 
+    @admin.display(description=_("Response content length"))
     def response_content_length(self, obj):
-        return obj.response_content_length or "-"
+        return obj.response_content_length
 
     def truncated_url(self, obj):
         parsed_url = urlparse(obj.url)

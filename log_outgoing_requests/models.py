@@ -181,7 +181,7 @@ class OutgoingRequestsLog(models.Model):
         """
         return str(len(self.response_body_decoded))
 
-    response_content_length.short_description = _("Content length")  # type: ignore
+    response_content_length.short_description = _("Response content length")  # type: ignore
 
 def get_default_max_content_length():
     """
