@@ -143,7 +143,9 @@ def test_response_content_length_empty(admin_client):
         res_body=b"",
         timestamp=timezone.now(),
     )
-    url = reverse("admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,))
+    url = reverse(
+        "admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,)
+    )
 
     response = admin_client.get(url)
     assert response.status_code == 200
@@ -157,6 +159,7 @@ def test_response_content_length_empty(admin_client):
     assert request_body == "-"
     assert response_body == "-"
     assert content_length == "0"
+
 
 @pytest.mark.django_db
 def test_response_content_length_displayed(admin_client):
