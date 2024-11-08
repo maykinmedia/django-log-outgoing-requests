@@ -25,6 +25,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "method",
         "response_ms",
         "timestamp",
+        "response_content_length",
     )
     list_filter = ("method", "timestamp", "status_code", "hostname")
     search_fields = ("url", "params", "hostname")
@@ -57,6 +58,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
                     "res_headers",
                     "res_content_type",
                     "res_body_encoding",
+                    "response_content_length",
                     "response_body",
                 )
             },
@@ -76,6 +78,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "response_ms",
         "res_headers",
         "res_content_type",
+        "response_content_length",
         "response_body",
         "trace",
     )
@@ -99,6 +102,10 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     @admin.display(description=_("Response body"))
     def response_body(self, obj) -> str:
         return obj.response_body_decoded or "-"
+
+    @admin.display(description=_("Response content length"))
+    def response_content_length(self, obj):
+        return obj.response_content_length
 
     def truncated_url(self, obj):
         parsed_url = urlparse(obj.url)
