@@ -25,6 +25,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "method",
         "response_ms",
         "timestamp",
+        "response_content_length",
     )
     list_filter = ("method", "timestamp", "status_code", "hostname")
     search_fields = ("url", "params", "hostname")
@@ -57,6 +58,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
                     "res_headers",
                     "res_content_type",
                     "res_body_encoding",
+                    "response_content_length",
                     "response_body",
                 )
             },
@@ -76,6 +78,7 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "response_ms",
         "res_headers",
         "res_content_type",
+        "response_content_length",
         "response_body",
         "trace",
     )
