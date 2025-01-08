@@ -12,13 +12,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     try {
                         outputValue = JSON.stringify(JSON.parse(responseBody), null, 3);
                     } catch (error) {
-                        outputValue = "<br><span style='color: red;'>Invalid JSON format</span>";
+                        outputValue = "Invalid JSON format";
                     }
                 } else if (contentType.includes('xml')) {
                     try {
                         outputValue = prettifyXml(responseBody);
                     } catch (xmlError) {
-                        outputValue = "<br><span style='color: red;'>Invalid XML format</span>";
+                        outputValue = "Invalid XML format";
                     }
                 }
                 textArea.value = outputValue;
