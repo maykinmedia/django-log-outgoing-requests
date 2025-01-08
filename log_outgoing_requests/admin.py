@@ -118,8 +118,6 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
             )
         return body_response
 
-    prettify_body_response.allow_tags = True
-
     def truncated_url(self, obj):
         parsed_url = urlparse(obj.url)
         path = parsed_url.path
