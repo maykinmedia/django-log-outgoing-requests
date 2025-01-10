@@ -135,6 +135,10 @@ class OutgoingRequestsLog(models.Model):
     def url_parsed(self):
         return urlparse(self.url)
 
+    @cached_property
+    def supports_xml_or_json(self):
+        return "xml" in self.res_content_type or "json" in self.res_content_type
+
     @property
     def query_params(self):
         return self.url_parsed.query

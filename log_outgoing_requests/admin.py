@@ -32,41 +32,6 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     search_fields = ("url", "params", "hostname")
     date_hierarchy = "timestamp"
     show_full_result_count = False
-
-    fieldsets = (
-        (
-            _("Request"),
-            {
-                "fields": (
-                    "method",
-                    "url",
-                    "timestamp",
-                    "query_params",
-                    "params",
-                    "req_headers",
-                    "req_content_type",
-                    "req_body_encoding",
-                    "request_body",
-                )
-            },
-        ),
-        (
-            _("Response"),
-            {
-                "fields": (
-                    "status_code",
-                    "response_ms",
-                    "res_headers",
-                    "res_content_type",
-                    "res_body_encoding",
-                    "response_content_length",
-                    "prettify_body_response",
-                    "response_body",
-                )
-            },
-        ),
-        (_("Extra"), {"fields": ("trace",)}),
-    )
     readonly_fields = (
         "url",
         "timestamp",
@@ -85,6 +50,46 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "response_body",
         "trace",
     )
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = [
+            (
+                _("Request"),
+                {
+                    "fields": (
+                        "method",
+                        "url",
+                        "timestamp",
+                        "query_params",
+                        "params",
+                        "req_headers",
+                        "req_content_type",
+                        "req_body_encoding",
+                        "request_body",
+                    )
+                },
+            ),
+            (
+                _("Response"),
+                {
+                    "fields": (
+                        "status_code",
+                        "response_ms",
+                        "res_headers",
+                        "res_content_type",
+                        "res_body_encoding",
+                        "response_content_length",
+                        "response_body",
+                    )
+                },
+            ),
+            (_("Extra"), {"fields": ("trace",)}),
+        ]
+
+        if obj and obj.supports_xml_or_json:
+            fieldsets[1][1]["fields"] += ("prettify_body_response",)
+
+        return fieldsets
 
     class Media:
         css = {
@@ -109,12 +114,12 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 
     def prettify_body_response(self, obj):
         body_response = ""
-        if "xml" in obj.res_content_type or "json" in obj.res_content_type:
+        if obj.supports_xml_or_json:
             body_response = mark_safe(
-                f"""
-                <a href="#" class="prettify-toggle-link">Prettify</a><br>
-                <textarea readonly class="prettify-output" style="display:none;" rows="15" cols="60" content-type='{obj.res_content_type}'>{obj.response_body_decoded}</textarea>
-                """
+                '<a href="#" class="prettify-toggle-link">Prettify</a><br>\n'
+                '<textarea readonly class="prettify-output" style="display:none;"\n'
+                f" rows='15' cols='60' content-type='{obj.res_content_type}'>\n"
+                f"{obj.response_body_decoded}</textarea>"
             )
         return body_response
 
