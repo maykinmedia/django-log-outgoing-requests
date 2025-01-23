@@ -131,3 +131,80 @@ def test_list_url_is_not_trucated_under_200_chars(admin_client):
     truncated_url = doc.find(".field-truncated_url").text()
 
     assert truncated_url == "/a1b2c3d4e/some-path"
+
+
+@pytest.mark.django_db
+def test_response_content_length_empty_changelist_view(admin_client):
+    """Assert the length of the content of the response is empty in changelist_view"""
+
+    log = OutgoingRequestsLog.objects.create(
+        id=1,
+        req_body=b"",
+        res_body=b"",
+        timestamp=timezone.now(),
+    )
+
+    url = reverse("admin:log_outgoing_requests_outgoingrequestslog_changelist")
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    html = response.content.decode("utf-8")
+    doc = PyQuery(html)
+    content_length = doc.find(".field-response_content_length").text()
+
+    assert content_length == "0"
+    assert log.response_content_length == 0
+
+
+@pytest.mark.django_db
+def test_response_content_length_displayed_changelist_view(admin_client):
+    """Assert the length of the content of the response is displayed in changelist_view"""
+
+    log = OutgoingRequestsLog.objects.create(
+        id=1,
+        req_body=b"Test request list view",
+        res_body=b"Test Response list view",
+        timestamp=timezone.now(),
+    )
+
+    url = reverse("admin:log_outgoing_requests_outgoingrequestslog_changelist")
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    html = response.content.decode("utf-8")
+    doc = PyQuery(html)
+    content_length = doc.find(".field-response_content_length").text()
+
+    assert content_length == "23"
+    assert log.response_content_length == 23
+
+
+@pytest.mark.django_db
+def test_response_content_length_displayed_change_view(admin_client):
+    """Assert the length of the content of the response is displayed in change_view"""
+
+    log = OutgoingRequestsLog.objects.create(
+        id=1,
+        req_body=b"Test request list view",
+        res_body=b"Test Response list view",
+        timestamp=timezone.now(),
+    )
+    url = reverse(
+        "admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,)
+    )
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    html = response.content.decode("utf-8")
+    doc = PyQuery(html)
+    request_body = doc.find(".field-request_body .readonly").text()
+    response_body = doc.find(".field-response_body .readonly").text()
+    content_length = doc.find(".field-response_content_length .readonly").text()
+
+    assert request_body == "Test request list view"
+    assert response_body == "Test Response list view"
+    assert content_length == "23"
+    assert log.response_content_length == 23
