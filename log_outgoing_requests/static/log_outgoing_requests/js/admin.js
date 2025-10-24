@@ -31,23 +31,81 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 var prettifyXml = function(sourceXml) {
-    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
-    var xsltDoc = new DOMParser().parseFromString([
-        '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-        '  <xsl:strip-space elements="*"/>',
-        '  <xsl:template match="node()|@*">',
-        '    <xsl:copy>',
-        '      <xsl:apply-templates select="node()|@*"/>',
-        '    </xsl:copy>',
-        '  </xsl:template>',
-        '  <xsl:output method="xml" indent="yes"/>',
-        '</xsl:stylesheet>',
-    ].join('\n'), 'application/xml');
+    // Unfortunately, Firefox and Safari do not respect `indent="yes"`
+    // when using `XSLTProcessor`, so we manually format the XML instead
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(sourceXml, "application/xml");
 
-    var xsltProcessor = new XSLTProcessor();    
-    xsltProcessor.importStylesheet(xsltDoc);
-    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-    var resultXml = new XMLSerializer().serializeToString(resultDoc);
-    return resultXml;
+    function formatNode(node, indent = 0) {
+        const PADDING = "  ";
+        const indentStr = PADDING.repeat(indent);
+        let xml = "";
+
+        switch (node.nodeType) {
+        case Node.ELEMENT_NODE:
+            {
+            // Collect all child nodes
+            const children = Array.from(node.childNodes).filter(
+                (n) => n.nodeType !== Node.COMMENT_NODE || n.nodeValue.trim() !== ""
+            );
+
+            // Open tag with attributes
+            let openTag = `<${node.nodeName}`;
+            for (let attr of node.attributes) {
+                openTag += ` ${attr.name}="${attr.value}"`;
+            }
+            openTag += ">";
+
+            // Determine if all children are text nodes
+            const allText = children.every((n) => n.nodeType === Node.TEXT_NODE);
+
+            if (children.length === 0) {
+                // Empty element
+                xml += indentStr + `<${node.nodeName}${[...node.attributes].map(a=>` ${a.name}="${a.value}"`).join('')}/>`;
+            } else if (allText) {
+                // Inline text
+                const textContent = children.map((c) => c.nodeValue.trim()).join("");
+                xml += indentStr + openTag + textContent + `</${node.nodeName}>`;
+            } else {
+                // Element with nested children
+                xml += indentStr + openTag + "\n";
+                for (let child of children) {
+                const childXml = formatNode(child, indent + 1);
+                if (childXml) xml += childXml + "\n";
+                }
+                xml += indentStr + `</${node.nodeName}>`;
+            }
+            }
+            break;
+
+        case Node.TEXT_NODE:
+            {
+            const text = node.nodeValue.trim();
+            if (text) xml += indentStr + text;
+            }
+            break;
+
+        case Node.CDATA_SECTION_NODE:
+            xml += indentStr + `<![CDATA[${node.nodeValue}]]>`;
+            break;
+
+        case Node.COMMENT_NODE:
+            xml += indentStr + `<!--${node.nodeValue.trim()}-->`;
+            break;
+
+        case Node.DOCUMENT_NODE:
+            for (let child of node.childNodes) {
+            xml += formatNode(child, indent) + "\n";
+            }
+            break;
+
+        default:
+            // Ignore other node types
+            break;
+        }
+
+        return xml.trimEnd();
+    }
+
+    return formatNode(xmlDoc);
 };
-
