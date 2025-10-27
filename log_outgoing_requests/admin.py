@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import admin
+from django.utils.html import mark_safe
 from django.utils.translation import gettext as _
 
 from solo.admin import SingletonModelAdmin
@@ -31,45 +32,12 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     search_fields = ("url", "params", "hostname")
     date_hierarchy = "timestamp"
     show_full_result_count = False
-
-    fieldsets = (
-        (
-            _("Request"),
-            {
-                "fields": (
-                    "method",
-                    "url",
-                    "timestamp",
-                    "query_params",
-                    "params",
-                    "req_headers",
-                    "req_content_type",
-                    "req_body_encoding",
-                    "request_body",
-                )
-            },
-        ),
-        (
-            _("Response"),
-            {
-                "fields": (
-                    "status_code",
-                    "response_ms",
-                    "res_headers",
-                    "res_content_type",
-                    "res_body_encoding",
-                    "response_content_length",
-                    "response_body",
-                )
-            },
-        ),
-        (_("Extra"), {"fields": ("trace",)}),
-    )
     readonly_fields = (
         "url",
         "timestamp",
         "method",
         "query_params",
+        "prettify_body_response",
         "params",
         "req_headers",
         "req_content_type",
@@ -83,10 +51,51 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "trace",
     )
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = [
+            (
+                _("Request"),
+                {
+                    "fields": (
+                        "method",
+                        "url",
+                        "timestamp",
+                        "query_params",
+                        "params",
+                        "req_headers",
+                        "req_content_type",
+                        "req_body_encoding",
+                        "request_body",
+                    )
+                },
+            ),
+            (
+                _("Response"),
+                {
+                    "fields": (
+                        "status_code",
+                        "response_ms",
+                        "res_headers",
+                        "res_content_type",
+                        "res_body_encoding",
+                        "response_content_length",
+                        "response_body",
+                    )
+                },
+            ),
+            (_("Extra"), {"fields": ("trace",)}),
+        ]
+
+        if obj and obj.supports_xml_or_json:
+            fieldsets[1][1]["fields"] += ("prettify_body_response",)
+
+        return fieldsets
+
     class Media:
         css = {
             "all": ("log_outgoing_requests/css/admin.css",),
         }
+        js = ("log_outgoing_requests/js/admin.js",)
 
     def has_add_permission(self, request):
         return False
@@ -102,6 +111,17 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     @admin.display(description=_("Response body"))
     def response_body(self, obj) -> str:
         return obj.response_body_decoded or "-"
+
+    def prettify_body_response(self, obj):
+        body_response = ""
+        if obj.supports_xml_or_json:
+            body_response = mark_safe(
+                '<a href="#" class="prettify-toggle-link">Prettify</a><br>\n'
+                '<textarea readonly class="prettify-output" style="display:none;"\n'
+                f" rows='15' cols='60' content-type='{obj.res_content_type}'>\n"
+                f"{obj.response_body_decoded}</textarea>"
+            )
+        return body_response
 
     def truncated_url(self, obj):
         parsed_url = urlparse(obj.url)
