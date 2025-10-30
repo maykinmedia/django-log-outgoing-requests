@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.7.0 (2025-10-30)
+==================
+
+* [#13] Enabled JSON/XML prettifying of response body using JavaScript in admin
+* [#33] Added ``reset_db_save_after`` option to config model
+* [#43] Improved admin response body display by wrapping text over multiple lines for better readability
+* [#44] Added response body size column to admin list view
+
 0.6.1 (2024-02-12)
 ==================
 
