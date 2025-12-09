@@ -5,6 +5,8 @@ Changelog
 0.7.1 (2025-12-09)
 ==================
 
+Small bugfix release
+
 * Fixed saving logging entries with requests/responses containing text content
 
 0.7.0 (2025-10-30)
