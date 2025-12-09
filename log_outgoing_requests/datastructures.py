@@ -6,7 +6,6 @@ it must be imported in settings.py.
 """
 
 from dataclasses import dataclass
-from typing import Union
 
 
 @dataclass
@@ -25,6 +24,6 @@ class ContentType:
 @dataclass
 class ProcessedBody:
     allow_saving_to_db: bool
-    content: Union[bytes, str]
+    content: bytes
     content_type: str
     encoding: str

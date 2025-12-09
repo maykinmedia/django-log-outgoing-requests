@@ -26,6 +26,10 @@ def process_body(http_obj: HttpObj, config: OutgoingRequestsLogConfig) -> Proces
         http_obj, config=config
     )
     content = _get_body(http_obj) if allow_persisting else b""
+
+    if type(content) is str:
+        content = bytes(content, encoding)
+
     return ProcessedBody(
         allow_saving_to_db=allow_persisting,
         content=content or b"",

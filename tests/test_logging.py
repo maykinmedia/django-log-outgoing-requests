@@ -207,6 +207,53 @@ def test_decoding_of_binary_content(
     assert request_log.request_body_decoded == expected
 
 
+#
+# test encoding of text content
+#
+@pytest.mark.parametrize(
+    "content, encoding, expected",
+    [
+        ("Foo", "utf-8", "Foo"),
+    ],
+)
+@pytest.mark.django_db
+def test_handling_text_content(content, encoding, expected, requests_mock, settings):
+    """
+    Assert that logs are properly saved whenever text request content is used
+    """
+    settings.LOG_OUTGOING_REQUESTS_CONTENT_TYPES = [
+        ContentType(pattern="text/*", default_encoding=encoding)
+    ]
+
+    request_mock_kwargs = {
+        "url": "http://example.com:8000/some-path?version=2.0",
+        "text": "bar",
+        "status_code": 200,
+        "headers": {
+            "Date": "Tue, 21 Mar 2023 15:24:08 GMT",
+            "Content-Type": "text/plain",
+            "Content-Length": "25",
+        },
+    }
+    requests_mock.post(**request_mock_kwargs)
+    response = requests.post(
+        request_mock_kwargs["url"],
+        headers={
+            "Authorization": "test",
+            "Content-Type": "text/plain",
+            "Content-Length": "24",
+        },
+        data=content,
+    )
+
+    assert response.status_code == 200
+
+    request_log = OutgoingRequestsLog.objects.last()
+
+    assert request_log.response_body_decoded == "bar"
+    assert request_log.request_body_decoded == expected
+
+
 @pytest.mark.django_db
 def test_authorization_header_is_hidden(requests_mock, request_mock_kwargs):
     requests_mock.get(**request_mock_kwargs)
