@@ -161,7 +161,7 @@ def test_logger_warning_missing_content_length(
     records = caplog.records
     assert records[1].levelname == "WARNING"
     assert records[1].name == "log_outgoing_requests.utils"
-    assert records[1].msg == (
+    assert records[1].message == (
         "Content length of the request/response (request netloc: example.com:8000) "
         "could not be determined."
     )
