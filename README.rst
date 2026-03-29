@@ -4,9 +4,8 @@ django-log-outgoing-requests
 :Version: 0.7.1
 :Source: https://github.com/maykinmedia/django-log-outgoing-requests
 :Keywords: logging, django, requests
-:PythonVersion: 3.8+
 
-|build-status| |code-quality| |black| |coverage| |docs|
+|build-status| |code-quality| |ruff| |coverage| |docs|
 
 |python-versions| |django-versions| |pypi-version|
 
@@ -45,7 +44,7 @@ To install and develop the library locally, use:
 
 .. code-block:: bash
 
-    pip install -e --no-build-isolation .[tests,coverage,docs,pep8,release]
+    uv pip install -e .[tests,docs,release,celery]
 
 
 .. _`requests`: https://pypi.org/project/requests/
@@ -60,8 +59,9 @@ To install and develop the library locally, use:
      :alt: Code quality checks
      :target: https://github.com/maykinmedia/django-log-outgoing-requests/actions?query=workflow%3A%22Code+quality+checks%22
 
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
+.. |ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
 
 .. |coverage| image:: https://codecov.io/gh/maykinmedia/django-log-outgoing-requests/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/maykinmedia/django-log-outgoing-requests

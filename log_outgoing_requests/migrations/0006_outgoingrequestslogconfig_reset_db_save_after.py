@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("log_outgoing_requests", "0005_alter_outgoingrequestslog_url"),
     ]
@@ -16,7 +15,15 @@ class Migration(migrations.Migration):
             name="reset_db_save_after",
             field=models.PositiveIntegerField(
                 blank=True,
-                help_text="If configured, after the config has been updated, reset the database logging after the specified number of minutes. Note: this overrides the LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER environment variable. Additionally, depending on the broker that is used, if this duration is too long the key for the reset task might have expired before that time. So make sure not to set too large a value for the reset.",
+                help_text=(
+                    "If configured, after the config has been updated, reset the "
+                    "database logging after the specified number of minutes. Note: "
+                    "this overrides the LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER "
+                    "environment variable. Additionally, depending on the broker that "
+                    "is used, if this duration is too long the key for the reset task "
+                    "might have expired before that time. So make sure not to set too "
+                    "large a value for the reset."
+                ),
                 null=True,
                 validators=[django.core.validators.MinValueValidator(1)],
                 verbose_name="Reset saving logs in database after",

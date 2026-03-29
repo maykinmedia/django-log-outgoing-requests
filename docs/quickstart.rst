@@ -5,8 +5,6 @@ Quickstart
 Requirements
 ============
 
-* Python 3.8 or newer
-* Django 3.2 or newer
 * Optional: celery
 
 Additional requirements are installed along with the package.

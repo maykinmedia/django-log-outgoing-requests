@@ -54,7 +54,11 @@ class Migration(migrations.Migration):
                     "max_content_length",
                     models.IntegerField(
                         default=log_outgoing_requests.models.get_default_max_content_length,
-                        help_text="The maximal size of the request/response content (in bytes). If 'Require content length' is not checked, this setting has no effect.",
+                        help_text=(
+                            "The maximal size of the request/response content (in "
+                            "bytes). If 'Require content length' is not checked, this "
+                            "setting has no effect."
+                        ),
                         validators=[django.core.validators.MinValueValidator(0)],
                         verbose_name="Maximal content size",
                     ),

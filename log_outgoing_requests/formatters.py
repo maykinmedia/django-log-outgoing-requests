@@ -1,6 +1,6 @@
 import logging
 import textwrap
-from typing import Union, cast
+from typing import cast
 
 from requests import RequestException
 from requests.models import PreparedRequest, Response
@@ -13,7 +13,7 @@ def format_headers(headers) -> str:
     return "\n".join(f"{k}: {v}" for k, v in headers.items())
 
 
-def format_body(content: Union[str, bytes, None], prefix: str) -> str:
+def format_body(content: str | bytes | None, prefix: str) -> str:
     from .conf import settings
 
     if settings.LOG_OUTGOING_REQUESTS_EMIT_BODY:
@@ -91,10 +91,7 @@ class HttpFormatter(logging.Formatter):
     def _formatMessageWithResponse(self, record: RequestLogRecord) -> str:
         assert record.req is not None
         assert record.res is not None
-        return "{request}\n{response}".format(
-            request=format_request(record.req),
-            response=format_response(record.res),
-        )
+        return f"{format_request(record.req)}\n{format_response(record.res)}"
 
     def formatMessage(self, record):
         result = super().formatMessage(record)
