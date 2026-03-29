@@ -141,14 +141,15 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 class ConfigAdminForm(forms.ModelForm):
     class Meta:
         model = OutgoingRequestsLogConfig
-        fields = "__all__"
+        fields = "__all__"  # noqa: DJ007
         help_texts = {
             "save_to_db": _(
-                "Whether request logs should be saved to the database (default: {default})."
+                "Whether request logs should be saved to the database (default: "
+                "{default})."
             ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE),
             "save_body": _(
-                "Whether the body of the request and response should be logged (default: "
-                "{default})."
+                "Whether the body of the request and response should be logged ("
+                "default: {default})."
             ).format(default=settings.LOG_OUTGOING_REQUESTS_DB_SAVE_BODY),
         }
 
@@ -158,7 +159,7 @@ class OutgoingRequestsLogConfigAdmin(SingletonModelAdmin):
     form = ConfigAdminForm
 
     def get_fields(self, request, obj=None, *args, **kwargs):
-        fields = super().get_fields(request, obj=obj, *args, **kwargs)
+        fields = super().get_fields(request, obj, *args, **kwargs)
         if celery is None and (obj and not obj.reset_db_save_after):
             fields.remove("reset_db_save_after")
         return fields

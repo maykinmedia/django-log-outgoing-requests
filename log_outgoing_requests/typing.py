@@ -1,21 +1,20 @@
 import logging
 from types import TracebackType
-from typing import Optional, Tuple, Type, Union
 
 from requests import RequestException
 from requests.models import PreparedRequest, Response
 
 
 class RequestLogRecord(logging.LogRecord):
-    req: Optional[PreparedRequest]
+    req: PreparedRequest | None
     res: Response
 
 
 class ErrorRequestLogRecord(logging.LogRecord):
-    exc_info: Tuple[Type[BaseException], RequestException, Optional[TracebackType]]
+    exc_info: tuple[type[BaseException], RequestException, TracebackType | None]
 
 
-AnyLogRecord = Union[logging.LogRecord, RequestLogRecord, ErrorRequestLogRecord]
+AnyLogRecord = logging.LogRecord | RequestLogRecord | ErrorRequestLogRecord
 
 
 def is_request_log_record(record: AnyLogRecord) -> bool:

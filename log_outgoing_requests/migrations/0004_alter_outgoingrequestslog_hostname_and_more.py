@@ -23,7 +23,12 @@ class Migration(migrations.Migration):
             name="req_body_encoding",
             field=models.CharField(
                 blank=True,
-                help_text="The encoding is either extracted from the Content-Type header or, if absent, taken from the default encoding configured for the content type. If the decoded request content is not displaying correctly, you may try changing the encoding value here.",
+                help_text=(
+                    "The encoding is either extracted from the Content-Type header or, "
+                    "if absent, taken from the default encoding configured for the "
+                    "content type. If the decoded request content is not displaying "
+                    "correctly, you may try changing the encoding value here."
+                ),
                 max_length=24,
                 verbose_name="Request encoding",
             ),
@@ -49,7 +54,12 @@ class Migration(migrations.Migration):
             name="res_body_encoding",
             field=models.CharField(
                 blank=True,
-                help_text="The encoding is either extracted from the Content-Type header or, if absent, taken from the default encoding configured for the content type. If the decoded response content is not displaying correctly, you may try changing the encoding value here.",
+                help_text=(
+                    "The encoding is either extracted from the Content-Type header or, "
+                    "if absent, taken from the default encoding configured for the "
+                    "content type. If the decoded response content is not displaying "
+                    "correctly, you may try changing the encoding value here."
+                ),
                 max_length=24,
                 verbose_name="Response encoding",
             ),

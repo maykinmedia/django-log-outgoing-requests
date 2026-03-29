@@ -1,6 +1,5 @@
 import logging
 from datetime import timedelta
-from typing import Union
 from urllib.parse import urlparse
 
 from django.core.validators import MinValueValidator
@@ -127,9 +126,7 @@ class OutgoingRequestsLog(models.Model):
         verbose_name_plural = _("Outgoing request logs")
 
     def __str__(self):
-        return ("{hostname} at {date}").format(
-            hostname=self.hostname, date=self.timestamp
-        )
+        return f"{self.hostname} at {self.timestamp}"
 
     @cached_property
     def url_parsed(self):
@@ -143,7 +140,7 @@ class OutgoingRequestsLog(models.Model):
     def query_params(self):
         return self.url_parsed.query
 
-    def _decode_body(self, content: Union[bytes, memoryview], encoding: str) -> str:
+    def _decode_body(self, content: bytes | memoryview, encoding: str) -> str:
         """
         Decode body for use in template.
 
@@ -225,12 +222,12 @@ class OutgoingRequestsLogConfig(SingletonModel):
         blank=True,
         validators=[MinValueValidator(1)],
         help_text=_(
-            "If configured, after the config has been updated, reset the database logging "
-            "after the specified number of minutes. Note: this overrides the "
-            "LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER environment variable. Additionally, "
-            "depending on the broker that is used, if this duration is too long "
-            "the key for the reset task might have expired before that time. So make sure not to "
-            "set too large a value for the reset."
+            "If configured, after the config has been updated, reset the database "
+            "logging after the specified number of minutes. Note: this overrides the "
+            "LOG_OUTGOING_REQUESTS_RESET_DB_SAVE_AFTER environment variable. "
+            "Additionally, depending on the broker that is used, if this duration is "
+            "too long the key for the reset task might have expired before that time. "
+            "So make sure not to set too large a value for the reset."
         ),
     )
 

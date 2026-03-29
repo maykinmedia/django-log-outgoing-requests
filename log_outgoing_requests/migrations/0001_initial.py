@@ -126,7 +126,9 @@ class Migration(migrations.Migration):
                     "trace",
                     models.TextField(
                         blank=True,
-                        help_text="Text providing information in case of request failure.",
+                        help_text=(
+                            "Text providing information in case of request failure."
+                        ),
                         null=True,
                         verbose_name="Trace",
                     ),

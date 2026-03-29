@@ -1,7 +1,7 @@
 """Tests for the utility functions"""
 
 import logging
-from typing import Iterable, Tuple, Union
+from collections.abc import Iterable
 
 from requests import PreparedRequest, Response
 
@@ -12,7 +12,7 @@ from .models import OutgoingRequestsLogConfig
 
 logger = logging.getLogger(__name__)
 
-HttpObj = Union[PreparedRequest, Response]
+type HttpObj = PreparedRequest | Response
 
 
 def process_body(http_obj: HttpObj, config: OutgoingRequestsLogConfig) -> ProcessedBody:
@@ -27,7 +27,7 @@ def process_body(http_obj: HttpObj, config: OutgoingRequestsLogConfig) -> Proces
     )
     content = _get_body(http_obj) if allow_persisting else b""
 
-    if type(content) is str:
+    if isinstance(content, str):
         content = bytes(content, encoding)
 
     return ProcessedBody(
@@ -41,7 +41,7 @@ def process_body(http_obj: HttpObj, config: OutgoingRequestsLogConfig) -> Proces
 #
 # Handler utilities
 #
-def _get_body(http_obj: HttpObj) -> Union[bytes, str, None]:
+def _get_body(http_obj: HttpObj) -> bytes | str | None:
     return http_obj.content if isinstance(http_obj, Response) else http_obj.body
 
 
@@ -80,8 +80,9 @@ def check_content_length(
         # for logging: get netloc (response) or url (request)
         target = getattr(http_obj, "netloc", "") or http_obj.url
         logger.warning(
-            "Content length of the request/response (request netloc: %s) could not be determined."
-            % target
+            "Content length of the request/response (request netloc: %s) could not be "
+            "determined.",
+            target,
         )
         return True
 
@@ -90,7 +91,7 @@ def check_content_length(
     return int(content_length) <= max_content_length
 
 
-def parse_content_type_header(http_obj: HttpObj) -> Tuple[str, str]:
+def parse_content_type_header(http_obj: HttpObj) -> tuple[str, str]:
     """
     Wrapper around Django's `parse_header`.
 

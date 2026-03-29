@@ -24,7 +24,9 @@ def test_formatter(
     log_body,
     expected,
 ):
-    """Assert that request/response bodies are (not) saved if setting is enabled (disabled)"""
+    """
+    Assert that request/response bodies are (not) saved if setting is enabled (disabled)
+    """
 
     settings.LOG_OUTGOING_REQUESTS_EMIT_BODY = log_body
 

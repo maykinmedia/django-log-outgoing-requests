@@ -4,7 +4,7 @@ import logging
 import time
 from contextlib import contextmanager
 from datetime import timedelta
-from typing import Optional, cast
+from typing import cast
 from urllib.parse import urlparse
 
 from django.utils import timezone
@@ -70,8 +70,8 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
         elif isinstance(exception, RequestException):
             record = cast(ErrorRequestLogRecord, record)
             # we have an requests-specific exception
-            request: Optional[PreparedRequest] = exception.request
-            response: Optional[Response] = exception.response  # likely None
+            request: PreparedRequest | None = exception.request
+            response: Response | None = exception.response  # likely None
         else:  # pragma: no cover
             logger.debug("Received log record that cannot be handled %r", record)
             return

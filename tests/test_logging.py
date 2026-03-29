@@ -272,7 +272,7 @@ def test_disable_save_db(request_mock_kwargs, request_variants, caplog, settings
 
     settings.LOG_OUTGOING_REQUESTS_DB_SAVE = False
 
-    for method, request_func, request_mock in request_variants:
+    for _, request_func, request_mock in request_variants:
         with caplog.at_level(logging.DEBUG):
             request_mock(**request_mock_kwargs)
             response = request_func(
@@ -299,7 +299,7 @@ def test_disable_save_body(request_mock_kwargs, request_variants, settings):
 
     settings.LOG_OUTGOING_REQUESTS_DB_SAVE_BODY = False
 
-    for method, request_func, request_mock in request_variants:
+    for _, request_func, request_mock in request_variants:
         request_mock(**request_mock_kwargs)
         response = request_func(
             request_mock_kwargs["url"],
@@ -317,13 +317,15 @@ def test_disable_save_body(request_mock_kwargs, request_variants, settings):
 
 @pytest.mark.django_db
 def test_content_type_not_allowed(request_mock_kwargs, request_variants, settings):
-    """Assert that request/response bodies are not saved when content type is not allowed"""
+    """
+    Assert that request/response bodies are not saved when content type is not allowed
+    """
 
     settings.LOG_OUTGOING_REQUESTS_CONTENT_TYPES = [
         ContentType(pattern="text/*", default_encoding="utf-8")
     ]
 
-    for method, request_func, request_mock in request_variants:
+    for _, request_func, request_mock in request_variants:
         request_mock(**request_mock_kwargs)
         response = request_func(
             request_mock_kwargs["url"],
@@ -345,7 +347,7 @@ def test_content_length_exceeded(request_mock_kwargs, request_variants, settings
 
     settings.LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 10
 
-    for method, request_func, request_mock in request_variants:
+    for _, request_func, request_mock in request_variants:
         request_mock(**request_mock_kwargs)
         response = request_func(
             request_mock_kwargs["url"],
@@ -361,7 +363,8 @@ def test_content_length_exceeded(request_mock_kwargs, request_variants, settings
 
 
 def test_unexpected_exceptions_do_not_crash_entire_application(mocker, requests_mock):
-    # let's pretend that get_solo is broken, perhaps because the cache is not reachable...
+    # let's pretend that get_solo is broken, perhaps because the cache is not
+    # reachable...
     mocker.patch(
         "solo.models.SingletonModel.get_solo",
         side_effect=Exception("Oh no, solo broke!"),

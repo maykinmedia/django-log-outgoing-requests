@@ -54,8 +54,8 @@ class LogOutgoingRequestsConf(AppConf):
 
     MAX_AGE = 1
     """
-    The maximum age (in days) of request logs, after which they are deleted (via a Celery
-    task, Django management command, or the like).
+    The maximum age (in days) of request logs, after which they are deleted (via a
+    Celery task, Django management command, or the like).
     """
 
     RESET_DB_SAVE_AFTER = 60
