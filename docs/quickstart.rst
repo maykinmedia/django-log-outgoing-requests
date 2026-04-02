@@ -59,8 +59,9 @@ the custom handler to save records to the database.
             },
             "save_outgoing_requests": {
                 "level": "DEBUG",
-                # enabling saving to database
-                "class": "log_outgoing_requests.handlers.DatabaseOutgoingRequestsHandler",
+                "()": "log_outgoing_requests.handlers.outgoing_requests_handler_factory",
+                "buffer_size": 3,  # batch size of log records to write in one go
+                "flush_interval": 15.0,  # in seconds
             },
         },
         "loggers": {
@@ -73,6 +74,10 @@ the custom handler to save records to the database.
         },
     }
 
+
+.. versionadded:: 0.8.0
+
+    Added the handler factory that automatically sets up a queue-based handler.
 
 The library ships with safe defaults for settings - essentially only emitting
 meta-information about requests and responses. To view request and response bodies,

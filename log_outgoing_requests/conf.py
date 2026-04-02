@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from django.conf import settings
 
 from appconf import AppConf
@@ -70,4 +72,16 @@ class LogOutgoingRequestsConf(AppConf):
     If the value is falsy (including zero), then no reset takes place at all.
 
     .. note:: this requires Celery to be installed, an optional dependency.
+    """
+
+    HANDLER_USE_QUEUE: bool = True
+    """
+    Set to ``False`` to write the log record in the main thread.
+
+    By default, django-log-outgoing-requests expects to spin up a background thread to
+    write logs.
+    """
+    HANDLER_ON_ERROR: Callable[[Exception], None] | None = None
+    """
+    Callback function to invoke if an exception happens during the ``emit`` phase.
     """
