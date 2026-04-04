@@ -1,18 +1,17 @@
 from contextlib import contextmanager
 
-from requests import RequestException, Session
+from requests import RequestException, Response, Session
 
 from . import logger
 
 
-def hook_requests_logging(response, *args, **kwargs):
+def hook_requests_logging(response: Response, *args, **kwargs):
     """
-    A hook for requests library in order to add extra data to the logs
+    A hook for requests library in order to add extra data to the logs.
     """
     logger.debug(
         "Outgoing request",
         extra={
-            "_is_log_outgoing_requests": True,
             "req": response.request,
             "res": response,
         },
@@ -27,7 +26,7 @@ def log_errors():
         logger.debug(
             "Outgoing request error",
             exc_info=exc,
-            extra={"_is_log_outgoing_requests": True},
+            extra={"request_exception": exc},
         )
         raise
 

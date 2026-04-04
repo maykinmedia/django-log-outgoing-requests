@@ -56,7 +56,7 @@ class LogRecordEmitter:
         response_status: int = 200,
     ) -> RequestLogRecord | ErrorRequestLogRecord:
         record = logging.LogRecord(
-            name="outgoing_request",
+            name="log_outgoing_requests",
             level=logging.DEBUG,
             pathname=__file__,
             lineno=1,
@@ -228,7 +228,7 @@ def test_handler_calls_on_error_callback_if_provided(
     errors_seen: set[Exception] = set()
     settings.LOG_OUTGOING_REQUESTS_HANDLER_ON_ERROR = lambda err: errors_seen.add(err)
     log_record = log_record_emitter()
-    del log_record.req  # type: ignore we're breaking it on purpose
+    log_record.req.url = None  # type: ignore we're breaking it on purpose
     handler = DatabaseOutgoingRequestsHandler(use_queue_mode=False)
 
     result = handler.handle(log_record)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import MutableMapping
-from types import TracebackType
 from typing import Any
 
 from requests import RequestException
@@ -11,34 +10,56 @@ from typing_extensions import TypeIs
 
 
 class RequestLogRecord(logging.LogRecord):
-    req: PreparedRequest | None
+    """
+    A log record produced by the request logging hook.
+    """
+
+    req: PreparedRequest
     res: Response
 
 
 class ErrorRequestLogRecord(logging.LogRecord):
-    exc_info: tuple[type[BaseException], RequestException, TracebackType | None]
+    """
+    A log record produced by the request exception logging wrapper.
+    """
+
+    request_exception: RequestException
 
 
 AnyLogRecord = logging.LogRecord | RequestLogRecord | ErrorRequestLogRecord
 
 
-def is_request_log_record(
+def is_any_request_log_record(
     record: AnyLogRecord,
 ) -> TypeIs[RequestLogRecord | ErrorRequestLogRecord]:
-    # FIXME: remove marker but test that the right logger is used.
-    return getattr(record, "_is_log_outgoing_requests", False)
+    """
+    Test if the provided log record is a log record emitted for a request.
+
+    Request logs are always emitted by the package/module name logger. Note that
+    submodules may also produce log records, but their name will be something
+    like log_outgoing_requests.handlers
+    """
+    if record.name != "log_outgoing_requests":
+        return False
+    return is_request_log_record(record) or is_error_request_log_record(record)
 
 
-def is_request_without_error_record(
-    record: RequestLogRecord | ErrorRequestLogRecord,
-) -> TypeIs[RequestLogRecord]:
-    return getattr(record, "res", None) is not None
+def is_request_log_record(record: AnyLogRecord) -> TypeIs[RequestLogRecord]:
+    if record.name != "log_outgoing_requests":
+        return False
+    req = getattr(record, "req", None)
+    res = getattr(record, "res", None)
+
+    # we need to support duck typing and can't isinstance(req, PreparedRequest) due
+    # to requests-mock replacing that with _RequestObjectProxy in tests...
+    _is_request_like = hasattr(req, "method") and hasattr(req, "url")
+    return _is_request_like and isinstance(res, Response)
 
 
-def is_error_request_log_record(
-    record: RequestLogRecord | ErrorRequestLogRecord,
-) -> TypeIs[ErrorRequestLogRecord]:
-    exception = record.exc_info[1] if record.exc_info else None
+def is_error_request_log_record(record: AnyLogRecord) -> TypeIs[ErrorRequestLogRecord]:
+    if record.name != "log_outgoing_requests":
+        return False
+    exception = getattr(record, "request_exception", None)
     return isinstance(exception, RequestException)
 
 

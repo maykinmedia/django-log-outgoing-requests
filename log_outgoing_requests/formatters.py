@@ -1,12 +1,15 @@
 import logging
 import textwrap
-from typing import cast
 
-from requests import RequestException
-from requests.models import PreparedRequest, Response
+from requests import PreparedRequest, RequestException, Response
 
 from .compat import format_exception
-from .typing import RequestLogRecord, is_request_log_record
+from .typing import (
+    RequestLogRecord,
+    is_any_request_log_record,
+    is_error_request_log_record,
+    is_request_log_record,
+)
 
 
 def format_headers(headers) -> str:
@@ -67,6 +70,7 @@ def format_error(exception: RequestException) -> str:
         return output
 
     # we have request information, let's include it
+    assert isinstance(request, PreparedRequest)
     formatted_request = format_request(request)
     return f"{formatted_request}\n{output}"
 
@@ -95,21 +99,15 @@ class HttpFormatter(logging.Formatter):
 
     def formatMessage(self, record):
         result = super().formatMessage(record)
-        if not is_request_log_record(record):
+        # for any other log record - use the default formatter
+        if not is_any_request_log_record(record):
             return result
 
         # if there is a response, apply the happy-flow formatting
-        if getattr(record, "res", None) is not None:
-            record = cast(RequestLogRecord, record)
+        if is_request_log_record(record):
             output = self._formatMessageWithResponse(record)
             return f"{result}{output}"
 
-        # if there is exception information, extract the details from that
-        if record.exc_info and isinstance(
-            (exception := record.exc_info[1]), RequestException
-        ):
-            output = format_error(exception)
-            return f"{result}{output}"
-
-        # any other log record - use the default formatter
-        return result
+        assert is_error_request_log_record(record)
+        output = format_error(record.request_exception)
+        return f"{result}{output}"

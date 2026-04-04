@@ -38,16 +38,16 @@ from django.db import close_old_connections
 from django.utils import timezone
 from django.utils.module_loading import import_string
 
-from requests import PreparedRequest
+from requests import PreparedRequest, RequestException, Response
 
 from .compat import format_exception
 from .conf import settings
 from .typing import (
     AnyLogRecord,
     EventDict,
+    is_any_request_log_record,
     is_error_request_log_record,
     is_request_log_record,
-    is_request_without_error_record,
 )
 
 if TYPE_CHECKING:
@@ -66,9 +66,6 @@ try:  # pragma: no cover
 except ImportError:
     uwsgi = None
     postfork = lambda cb: None  # noqa: E731
-
-
-logger = logging.getLogger(__name__)
 
 _queue: queue.Queue = queue.Queue[EventDict](maxsize=0)
 """
@@ -238,7 +235,7 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
         from .utils import process_body
 
         # skip requests not coming from the library requests
-        if not record or not is_request_log_record(record):
+        if not record or not is_any_request_log_record(record):
             return
 
         self._maybe_close_old_connections()
@@ -248,14 +245,15 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
             return
 
         # check if we're dealing with success or error state
-        exception = record.exc_info[1] if record.exc_info else None
-        if is_request_without_error_record(record):
+        response: Response | None
+        exception: RequestException | None = None
+        if is_request_log_record(record):
             # we have a response - this is the 'happy' flow (connectivity is okay)
             request = record.req
             response = record.res
         elif is_error_request_log_record(record):
             # we have an requests-specific exception
-            exception = record.exc_info[1]
+            exception = record.request_exception
             request = exception.request
             assert isinstance(request, PreparedRequest)
             response = exception.response  # likely None
