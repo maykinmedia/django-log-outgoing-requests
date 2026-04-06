@@ -3,7 +3,7 @@ Implement support for optional structlog integration.
 """
 
 from collections.abc import Mapping
-from typing import Any, Literal
+from typing import Any, Literal, assert_never
 from urllib.parse import urlparse
 
 from requests.models import CaseInsensitiveDict, PreparedRequest, Response
@@ -61,8 +61,8 @@ class ExtractRequestAndResponseDetails:
         elif is_request_log_record(record):
             request = record.req
             response = record.res
-        else:
-            return event_dict
+        else:  # pragma: no cover
+            assert_never(record)
 
         if request is None:  # nothing to do, no information...
             return event_dict

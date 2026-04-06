@@ -69,10 +69,3 @@ Structlog's ``EventDict`` type, vendored to avoid a dependency.
 
 See upstream: https://github.com/hynek/structlog/blob/811245fe02fcf454f517f0677648457bfec52ef0/src/structlog/typing.py#L57
 """
-
-
-def is_event_dict(msg: str | Any) -> TypeIs[EventDict]:
-    """
-    Test if the provided log record message is an event dict.
-    """
-    return isinstance(msg, dict)

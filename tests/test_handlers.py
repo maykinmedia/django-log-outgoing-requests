@@ -1,14 +1,11 @@
 import logging
 import logging.config
 import time
-from collections.abc import Mapping
 from contextlib import nullcontext
 from unittest.mock import patch
 
 import pytest
 import requests
-from requests import Request, Response
-from requests.models import CaseInsensitiveDict
 
 from log_outgoing_requests.handlers import (
     DatabaseOutgoingRequestsHandler,
@@ -19,11 +16,8 @@ from log_outgoing_requests.handlers import (
     outgoing_requests_handler_factory,
 )
 from log_outgoing_requests.models import OutgoingRequestsLog
-from log_outgoing_requests.typing import (
-    ErrorRequestLogRecord,
-    RequestLogRecord,
-    is_request_log_record,
-)
+
+from .conftest import LogRecordEmitter
 
 
 def assert_background_thread_not_running():
@@ -43,51 +37,6 @@ def test_setup_and_teardown(request: pytest.FixtureRequest):
     with patch_context:
         yield
     _stop_listener()
-
-
-class LogRecordEmitter:
-    def __call__(
-        self,
-        method: str = "GET",
-        url: str = "https://example.com/some/path",
-        headers: Mapping[str, str] = {"Request-Header": "header value"},
-        params: Mapping[str, str] = {"queryParam": "one"},
-        data: bytes | Mapping[str, str] | None = None,
-        response_status: int = 200,
-    ) -> RequestLogRecord | ErrorRequestLogRecord:
-        record = logging.LogRecord(
-            name="log_outgoing_requests",
-            level=logging.DEBUG,
-            pathname=__file__,
-            lineno=1,
-            msg={"event": "dummy"},
-            args=None,
-            exc_info=None,
-        )
-        record._is_log_outgoing_requests = True
-        prepared_request = Request(
-            method=method, url=url, headers=headers, params=params, data=data
-        ).prepare()
-        assert prepared_request.url
-
-        response = Response()
-        response.request = prepared_request
-        response.status_code = response_status
-        response.headers = CaseInsensitiveDict({"Content-Type": "text/plain"})
-        response.encoding = "utf-8"
-        response.reason = "OK"
-        response._content = "Bòbr".encode()
-        response.url = prepared_request.url
-
-        record.req = prepared_request
-        record.res = response
-        assert is_request_log_record(record)
-        return record
-
-
-@pytest.fixture
-def log_record_emitter():
-    return LogRecordEmitter()
 
 
 @pytest.mark.parametrize(
