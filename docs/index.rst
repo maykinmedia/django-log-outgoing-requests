@@ -31,6 +31,7 @@ Features
    :caption: Contents:
 
    quickstart
+   structlog
    reference
    changelog
 

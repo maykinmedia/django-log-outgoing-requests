@@ -24,6 +24,19 @@ class ExtractRequestAndResponseDetails:
 
     Use this processor in your foreign pre-chain configuration to extract request,
     response and error details from outgoing request logs.
+
+    :param expand_headers: Boolean that controls whether the request and response
+      headers are added as a container or individual (prefixed) keys to the event dict.
+      For the JSON renderer, you typically want to leave this disabled, while for the
+      console renderer (logfmt) you'll probably want to set it to ``True``.
+    :param extract_bodies: If enabled, request and response bodies smaller than the
+      treshold (see :attr:`body_max_content_length`) are added to the event dict as
+      well. Additionally, the ``LOG_OUTGOING_REQUESTS_CONTENT_TYPES`` setting is
+      checked for an allow-list of content types to log. Be careful when you enable
+      this, as it can quickly explode your log storage.
+    :param body_max_content_length: If body extraction is enabled, this parameter
+      controls the maximum size of bodies to be logged. Bodies that are larger will not
+      be added to the event dict.
     """
 
     def __init__(
