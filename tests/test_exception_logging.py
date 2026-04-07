@@ -17,7 +17,7 @@ def test_invalid_dns_name_error(minimal_settings, caplog):
         requests.get("https://e57f27db-ef2f-4475-98e8-cb3a4409cb3f")
 
     assert len(caplog.records) == 1
-    assert "Outgoing request error" in caplog.text
+    assert "outgoing_request_errored" in caplog.text
 
 
 def test_any_requests_exception_logged(minimal_settings, caplog, requests_mock):
@@ -36,7 +36,7 @@ def test_any_requests_exception_logged(minimal_settings, caplog, requests_mock):
         requests.get("https://example.com")
 
     assert len(caplog.records) == 1
-    assert "Outgoing request error" in caplog.text
+    assert "outgoing_request_errored" in caplog.text
 
 
 def test_properly_emit_exception_logs(prepared_request, minimal_settings, caplog):

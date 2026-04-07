@@ -59,8 +59,9 @@ the custom handler to save records to the database.
             },
             "save_outgoing_requests": {
                 "level": "DEBUG",
-                # enabling saving to database
-                "class": "log_outgoing_requests.handlers.DatabaseOutgoingRequestsHandler",
+                "()": "log_outgoing_requests.handlers.outgoing_requests_handler_factory",
+                "buffer_size": 3,  # batch size of log records to write in one go
+                "flush_interval": 15.0,  # in seconds
             },
         },
         "loggers": {
@@ -73,6 +74,10 @@ the custom handler to save records to the database.
         },
     }
 
+
+.. versionadded:: 0.8.0
+
+    Added the handler factory that automatically sets up a queue-based handler.
 
 The library ships with safe defaults for settings - essentially only emitting
 meta-information about requests and responses. To view request and response bodies,
@@ -125,4 +130,25 @@ be visible via *Admin* > *Outgoing request logs* > *Outgoing request logs*.
 Via *Admin* > *Outgoing request logs* > *Outgoing request log configuration* you can
 specify/override some settings that influence the logging behaviour.
 
-.. _`documentation`: https://docs.djangoproject.com/en/4.2/topics/logging/
+Testing
+=======
+
+Set:
+
+.. code-block:: python
+
+    LOG_OUTGOING_REQUESTS__HANDLER_USE_QUEUE = False
+
+when running your Django test suite. It will skip the thread and queue for log messages,
+and synchronously insert the log events in the database. This will all happen in the
+same database transaction that your test is currently running in, so at the end of the
+test when the transaction is rolled back, your log events are rolled back too. This
+prevents broken isolation between tests.
+
+If, for some reason, you need to enable the thread-based logging, you should use a
+``TransactionTestCase``, but be warned - these are much slower.
+
+.. note:: This setting is global and cannot be changed on an individual test-basis,
+   because Django only configures logging once when it initializes.
+
+.. _`documentation`: https://docs.djangoproject.com/en/5.2/topics/logging/

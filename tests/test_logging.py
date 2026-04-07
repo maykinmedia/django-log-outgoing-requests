@@ -59,7 +59,7 @@ def test_data_is_logged(requests_mock, request_mock_kwargs, caplog):
     records = caplog.records
     assert records[1].levelname == "DEBUG"
     assert records[1].name == "log_outgoing_requests"
-    assert records[1].msg == "Outgoing request"
+    assert records[1].msg == "outgoing_request_response_received"
 
 
 @pytest.mark.django_db
@@ -287,7 +287,7 @@ def test_disable_save_db(request_mock_kwargs, request_variants, caplog, settings
             records = caplog.records
             assert records[1].levelname == "DEBUG"
             assert records[1].name == "log_outgoing_requests"
-            assert records[1].msg == "Outgoing request"
+            assert records[1].msg == "outgoing_request_response_received"
 
             # data is not saved
             assert OutgoingRequestsLog.objects.exists() is False

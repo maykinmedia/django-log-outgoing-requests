@@ -31,6 +31,7 @@ dependencies = [
     "requests",
     "django-appconf",
     "django-solo",
+    "typing-extensions",
 ]
 
 [project.urls]
@@ -43,8 +44,9 @@ Changelog = "https://github.com/maykinmedia/django-log-outgoing-requests/blob/ma
 [project.optional-dependencies]
 tests = [
     "pytest",
-    "pytest-django",
     "pytest-cov",
+    "pytest-django",
+    "pytest-env",
     "pytest-mock",
     "freezegun",
     "requests-mock",
@@ -74,6 +76,12 @@ testpaths = ["tests"]
 DJANGO_SETTINGS_MODULE = "testapp.settings"
 filterwarnings = [
     "error:DateTimeField .* received a naive datetime:RuntimeWarning:django.db.models.fields",
+]
+markers = [
+    "real_db_close: do not patch timeline_logger.handlers.close_old_connections",
+]
+env = [
+    "_LOG_OUTGOING_REQUESTS_LOGGER_DEFER_LISTENER=true",
 ]
 
 [tool.bumpversion]
