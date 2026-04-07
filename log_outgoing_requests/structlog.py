@@ -6,6 +6,8 @@ from collections.abc import Mapping
 from typing import Any, Literal, assert_never
 from urllib.parse import urlparse
 
+from django.views.debug import SafeExceptionReporterFilter
+
 from requests.models import CaseInsensitiveDict, PreparedRequest, Response
 
 from .typing import (
@@ -98,11 +100,21 @@ class ExtractRequestAndResponseDetails:
         headers: CaseInsensitiveDict,
         direction: Literal["req", "resp"],
     ) -> Mapping[str, Mapping[str, str]] | Mapping[str, str]:
+        _normalized_headers: Mapping[str, str] = dict(headers)
+
+        # obfuscate potential sensitive headers
+        if direction == "req":
+            filter = SafeExceptionReporterFilter()
+            _normalized_headers = {
+                key: filter.cleanse_setting(key, value)
+                for key, value in _normalized_headers.items()
+            }
+
         if not self.expand_headers:
-            return {f"{direction}_headers": dict(headers)}
+            return {f"{direction}_headers": _normalized_headers}
         return {
             f"{direction}_header_{name.lower().replace('-', '_')}": value
-            for name, value in headers.items()
+            for name, value in _normalized_headers.items()
         }
 
     def _add_body_details(

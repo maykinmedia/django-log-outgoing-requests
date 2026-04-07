@@ -149,3 +149,25 @@ def test_doesnt_crash_on_empty_event_dict():
     updated_event_dict = processor(logger, "debug", {})
 
     assert updated_event_dict == {}
+
+
+def test_processor_obfuscates_sensitive_headers(log_record_emitter: LogRecordEmitter):
+    log_record = log_record_emitter(
+        headers={
+            "X-Test": "1",
+            "Content-Type": "text/plain",
+            "Authorization": "sikrit!",
+            "X-API-Key": "ohno",
+        },
+    )
+    event_dict = _make_event_dict(log_record)
+    processor = ExtractRequestAndResponseDetails()
+
+    updated_event_dict = processor(logger, "debug", event_dict)
+
+    assert updated_event_dict["req_headers"] == {
+        "X-Test": "1",
+        "Content-Type": "text/plain",
+        "Authorization": "********************",
+        "X-API-Key": "********************",
+    }
