@@ -9,6 +9,7 @@ from solo.admin import SingletonModelAdmin
 
 from .conf import settings
 from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
+from .syntax_highlighting import highlight_body
 
 try:
     import celery
@@ -105,12 +106,12 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         return obj.query_params
 
     @admin.display(description=_("Request body"))
-    def request_body(self, obj) -> str:
-        return obj.request_body_decoded or "-"
+    def request_body(self, obj: OutgoingRequestsLog) -> str:
+        return highlight_body(obj.request_body_decoded, obj.req_content_type)
 
     @admin.display(description=_("Response body"))
-    def response_body(self, obj) -> str:
-        return obj.response_body_decoded or "-"
+    def response_body(self, obj: OutgoingRequestsLog) -> str:
+        return highlight_body(obj.response_body_decoded, obj.res_content_type)
 
     def prettify_body_response(self, obj):
         body_response = ""
