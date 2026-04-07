@@ -3,7 +3,6 @@ import textwrap
 
 from requests import PreparedRequest, RequestException, Response
 
-from .compat import format_exception
 from .typing import (
     RequestLogRecord,
     is_any_request_log_record,
@@ -56,6 +55,8 @@ def format_response(resp: Response):
 
 
 def format_error(exception: RequestException) -> str:
+    from .utils import format_exception
+
     template = textwrap.dedent(
         """
         ---------------- error ----------------

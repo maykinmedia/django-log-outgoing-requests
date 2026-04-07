@@ -40,7 +40,6 @@ from django.utils.module_loading import import_string
 
 from requests import PreparedRequest, RequestException, Response
 
-from .compat import format_exception
 from .conf import settings
 from .typing import (
     AnyLogRecord,
@@ -232,7 +231,7 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
 
     def _emit_to_db(self, record: AnyLogRecord) -> None:
         from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
-        from .utils import process_body
+        from .utils import format_exception, process_body
 
         # skip requests not coming from the library requests
         if not record or not is_any_request_log_record(record):

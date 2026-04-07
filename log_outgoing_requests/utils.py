@@ -1,11 +1,13 @@
 """Tests for the utility functions"""
 
 import logging
+import traceback
 from collections.abc import Iterable
+
+from django.utils.http import parse_header_parameters
 
 from requests import PreparedRequest, Response
 
-from .compat import parse_header_parameters
 from .conf import settings
 from .datastructures import ContentType, ProcessedBody
 from .models import OutgoingRequestsLogConfig
@@ -36,6 +38,11 @@ def process_body(http_obj: HttpObj, config: OutgoingRequestsLogConfig) -> Proces
         content_type=content_type,
         encoding=encoding,
     )
+
+
+def format_exception(exception: BaseException):
+    t, e, tb = type(exception), exception, exception.__traceback__
+    return traceback.format_exception(t, e, tb)
 
 
 #
