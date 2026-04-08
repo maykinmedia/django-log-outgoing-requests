@@ -9,6 +9,7 @@ _FORMATTER = HtmlFormatter(
     noclasses=False,  # no inline styles
     nowrap=False,
     cssclass="lor-http-body",
+    style="monokai",
 )
 
 
@@ -35,3 +36,14 @@ def highlight_body(body: str, content_type: str) -> str:
 
     result = highlight(body, lexer, _FORMATTER)
     return mark_safe(result)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    from pathlib import Path
+
+    PACKAGE_ROOT = Path(__file__).parent.resolve()
+    outfile = (
+        PACKAGE_ROOT / "static" / "log_outgoing_requests" / "css" / "highlight.css"
+    )
+    output_css = _FORMATTER.get_style_defs()
+    outfile.write_text(output_css)

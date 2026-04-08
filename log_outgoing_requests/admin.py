@@ -94,7 +94,10 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 
     class Media:
         css = {
-            "all": ("log_outgoing_requests/css/admin.css",),
+            "all": (
+                "log_outgoing_requests/css/admin.css",
+                "log_outgoing_requests/css/highlight.css",
+            ),
         }
         js = ("log_outgoing_requests/js/admin.js",)
 
