@@ -49,6 +49,8 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "res_content_type",
         "response_content_length",
         "response_body",
+        "raw_request_body",
+        "raw_response_body",
         "trace",
     )
 
@@ -67,7 +69,12 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
                         "req_content_type",
                         "req_body_encoding",
                         "request_body",
-                    )
+                    ),
+                    "description": _(
+                        "Details about the request made. Note that the formatted "
+                        "request body may have applied cosmetic changes - for "
+                        "debugging, consider looking at the raw bodies as well."
+                    ),
                 },
             ),
             (
@@ -81,7 +88,26 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
                         "res_body_encoding",
                         "response_content_length",
                         "response_body",
-                    )
+                    ),
+                    "description": _(
+                        "Details about the received response. Note that the formatted "
+                        "response body may have applied cosmetic changes - for "
+                        "debugging, consider looking at the raw bodies as well."
+                    ),
+                },
+            ),
+            (
+                _("Raw bodies"),
+                {
+                    "fields": (
+                        "raw_request_body",
+                        "raw_response_body",
+                    ),
+                    "classes": ("collapse",),
+                    "description": _(
+                        "The raw, unformatted bodies. These can help debugging syntax "
+                        "errors."
+                    ),
                 },
             ),
             (_("Extra"), {"fields": ("trace",)}),
@@ -115,6 +141,14 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     @admin.display(description=_("Response body"))
     def response_body(self, obj: OutgoingRequestsLog) -> str:
         return highlight_body(obj.response_body_decoded, obj.res_content_type)
+
+    @admin.display(description=_("Request"))
+    def raw_request_body(self, obj: OutgoingRequestsLog) -> str:
+        return obj.request_body_decoded or "-"
+
+    @admin.display(description=_("Response"))
+    def raw_response_body(self, obj: OutgoingRequestsLog) -> str:
+        return obj.response_body_decoded or "-"
 
     def prettify_body_response(self, obj):
         body_response = ""

@@ -4,6 +4,8 @@ body.app-log_outgoing_requests.model-outgoingrequestslog .field-status_code .rea
   font-weight: 900;
 }
 
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-raw_request_body .readonly,
+body.app-log_outgoing_requests.model-outgoingrequestslog .field-raw_response_body .readonly,
 body.app-log_outgoing_requests.model-outgoingrequestslog .field-req_headers .readonly,
 body.app-log_outgoing_requests.model-outgoingrequestslog .field-res_headers .readonly {
   white-space: pre-wrap;
