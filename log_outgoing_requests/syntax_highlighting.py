@@ -70,8 +70,13 @@ def highlight_body(body: str, content_type: str) -> str:
     except ClassNotFound:
         return body
 
-    formatted_body = format_body(body, content_type)
-    result = highlight(formatted_body, lexer, _FORMATTER)
+    # catch any (strict) parsing errors in the case of malformed bodies, and fall
+    # back to unformatted content.
+    try:
+        body = format_body(body, content_type)
+    except Exception:
+        pass
+    result = highlight(body, lexer, _FORMATTER)
     return mark_safe(result)
 
 

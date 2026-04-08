@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from solo.models import SingletonModel  # type: ignore
+from solo.models import SingletonModel
 
 from .conf import settings
 from .config_reset import schedule_config_reset
@@ -131,10 +131,6 @@ class OutgoingRequestsLog(models.Model):
     @cached_property
     def url_parsed(self):
         return urlparse(self.url)
-
-    @cached_property
-    def supports_xml_or_json(self):
-        return "xml" in self.res_content_type or "json" in self.res_content_type
 
     @property
     def query_params(self):

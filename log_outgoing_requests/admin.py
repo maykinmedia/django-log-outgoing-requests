@@ -2,7 +2,6 @@ from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import admin
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from solo.admin import SingletonModelAdmin
@@ -38,7 +37,6 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "timestamp",
         "method",
         "query_params",
-        "prettify_body_response",
         "params",
         "req_headers",
         "req_content_type",
@@ -54,69 +52,63 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "trace",
     )
 
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = [
-            (
-                _("Request"),
-                {
-                    "fields": (
-                        "method",
-                        "url",
-                        "timestamp",
-                        "query_params",
-                        "params",
-                        "req_headers",
-                        "req_content_type",
-                        "req_body_encoding",
-                        "request_body",
-                    ),
-                    "description": _(
-                        "Details about the request made. Note that the formatted "
-                        "request body may have applied cosmetic changes - for "
-                        "debugging, consider looking at the raw bodies as well."
-                    ),
-                },
-            ),
-            (
-                _("Response"),
-                {
-                    "fields": (
-                        "status_code",
-                        "response_ms",
-                        "res_headers",
-                        "res_content_type",
-                        "res_body_encoding",
-                        "response_content_length",
-                        "response_body",
-                    ),
-                    "description": _(
-                        "Details about the received response. Note that the formatted "
-                        "response body may have applied cosmetic changes - for "
-                        "debugging, consider looking at the raw bodies as well."
-                    ),
-                },
-            ),
-            (
-                _("Raw bodies"),
-                {
-                    "fields": (
-                        "raw_request_body",
-                        "raw_response_body",
-                    ),
-                    "classes": ("collapse",),
-                    "description": _(
-                        "The raw, unformatted bodies. These can help debugging syntax "
-                        "errors."
-                    ),
-                },
-            ),
-            (_("Extra"), {"fields": ("trace",)}),
-        ]
-
-        if obj and obj.supports_xml_or_json:
-            fieldsets[1][1]["fields"] += ("prettify_body_response",)
-
-        return fieldsets
+    fieldsets = [
+        (
+            _("Request"),
+            {
+                "fields": (
+                    "method",
+                    "url",
+                    "timestamp",
+                    "query_params",
+                    "params",
+                    "req_headers",
+                    "req_content_type",
+                    "req_body_encoding",
+                    "request_body",
+                ),
+                "description": _(
+                    "Details about the request made. Note that the formatted "
+                    "request body may have applied cosmetic changes - for "
+                    "debugging, consider looking at the raw bodies as well."
+                ),
+            },
+        ),
+        (
+            _("Response"),
+            {
+                "fields": (
+                    "status_code",
+                    "response_ms",
+                    "res_headers",
+                    "res_content_type",
+                    "res_body_encoding",
+                    "response_content_length",
+                    "response_body",
+                ),
+                "description": _(
+                    "Details about the received response. Note that the formatted "
+                    "response body may have applied cosmetic changes - for "
+                    "debugging, consider looking at the raw bodies as well."
+                ),
+            },
+        ),
+        (
+            _("Raw bodies"),
+            {
+                "fields": (
+                    "raw_request_body",
+                    "raw_response_body",
+                ),
+                "classes": ("collapse",),
+                "description": _(
+                    "The raw, unformatted bodies. These can help debugging syntax "
+                    "errors."
+                ),
+            },
+        ),
+        (_("Extra"), {"fields": ("trace",)}),
+    ]
 
     class Media:
         css = {
@@ -125,7 +117,6 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
                 "log_outgoing_requests/css/highlight.css",
             ),
         }
-        js = ("log_outgoing_requests/js/admin.js",)
 
     def has_add_permission(self, request):
         return False
@@ -149,17 +140,6 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
     @admin.display(description=_("Response"))
     def raw_response_body(self, obj: OutgoingRequestsLog) -> str:
         return obj.response_body_decoded or "-"
-
-    def prettify_body_response(self, obj):
-        body_response = ""
-        if obj.supports_xml_or_json:
-            body_response = mark_safe(
-                '<a href="#" class="prettify-toggle-link">Prettify</a><br>\n'
-                '<textarea readonly class="prettify-output" style="display:none;"\n'
-                f" rows='15' cols='60' content-type='{obj.res_content_type}'>\n"
-                f"{obj.response_body_decoded}</textarea>"
-            )
-        return body_response
 
     def truncated_url(self, obj):
         parsed_url = urlparse(obj.url)
