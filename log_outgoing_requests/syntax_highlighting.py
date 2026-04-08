@@ -4,6 +4,7 @@ from collections.abc import Callable, Mapping
 from django.http.request import MediaType
 from django.utils.safestring import mark_safe
 
+from lxml import etree
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_for_mimetype
@@ -17,9 +18,15 @@ _FORMATTER = HtmlFormatter(
 )
 
 
+def _prettify_xml(body: str) -> str:
+    parser = etree.XMLParser(remove_blank_text=True)
+    root = etree.fromstring(body.encode("utf-8"), parser)
+    return etree.tostring(root, pretty_print=True, encoding="unicode")
+
+
 CONTENT_TYPE_TO_FORMATTER: Mapping[str, Callable[[str], str]] = {
     "json": lambda body: json.dumps(json.loads(body), indent=2),
-    "xml": lambda body: body,
+    "xml": _prettify_xml,
     "noop": lambda body: body,
 }
 

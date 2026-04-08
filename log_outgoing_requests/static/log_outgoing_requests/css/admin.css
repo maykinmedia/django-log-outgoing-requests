@@ -17,4 +17,8 @@ body.app-log_outgoing_requests.model-outgoingrequestslog .field-res_headers .rea
 .lor-http-body {
   background: #272822;
   padding-block: 4px;
+
+  > pre {
+    margin-block: 0;
+  }
 }
