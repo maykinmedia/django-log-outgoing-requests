@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import admin
-from django.utils.html import mark_safe
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from solo.admin import SingletonModelAdmin
