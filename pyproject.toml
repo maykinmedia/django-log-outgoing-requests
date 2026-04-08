@@ -31,7 +31,6 @@ dependencies = [
     "requests",
     "django-appconf",
     "django-solo",
-    "lxml",
     "pygments",
     "typing-extensions",
 ]
@@ -67,6 +66,9 @@ release = [
 ]
 celery = [
     "celery",
+]
+xml = [
+    "lxml",
 ]
 
 [tool.setuptools.packages.find]

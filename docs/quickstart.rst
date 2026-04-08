@@ -16,7 +16,7 @@ Installation
 
     .. code-block:: bash
 
-        pip install django-log-outgoing-requests
+        pip install django-log-outgoing-requests[xml]
 
 #.  Add ``log_outgoing_requests`` to ``INSTALLED_APPS`` in your Django
     project's ``settings.py``.
@@ -25,6 +25,9 @@ Installation
 
 If celery is installed in your environment, then the task to reset the admin
 configuration is automatically enabled.
+
+The ``xml`` extra is optional - it installs LXML for pretty-printing of XML bodies. If
+you don't expect to ever work with XML, you can omit it.
 
 Configuration
 =============

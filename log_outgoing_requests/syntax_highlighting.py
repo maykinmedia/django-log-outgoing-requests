@@ -1,10 +1,10 @@
+import importlib.util
 import json
 from collections.abc import Callable, Mapping
 
 from django.http.request import MediaType
 from django.utils.safestring import mark_safe
 
-from lxml import etree
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_for_mimetype
@@ -19,6 +19,12 @@ _FORMATTER = HtmlFormatter(
 
 
 def _prettify_xml(body: str) -> str:
+    # lxml is an optional dependency
+    if importlib.util.find_spec("lxml") is None:
+        return body
+
+    from lxml import etree
+
     parser = etree.XMLParser(remove_blank_text=True)
     root = etree.fromstring(body.encode("utf-8"), parser)
     return etree.tostring(root, pretty_print=True, encoding="unicode")
