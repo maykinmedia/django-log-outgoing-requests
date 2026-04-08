@@ -2,6 +2,46 @@
 Changelog
 =========
 
+0.8.0 (2026-04-08)
+==================
+
+Feature release with some breaking changes.
+
+**💥 Breaking changes**
+
+* Dropped support for the end-of-life Django 3.2, 4.1 and 4.2 versions.
+* Dropped support for Python versions older than 3.12.
+
+**New features**
+
+* Confirmed Django 5.2 support.
+* Confirmed Python 3.12+ support.
+* Renamed the log events emitted:
+
+  - ``Outgoing request`` is now ``outgoing_request_response_received``
+  - ``Outgoing request error`` is now ``outgoing_request_errored``
+
+* [#48] Add support for structlog:
+
+  - The emitted log events now use ``snake_case`` events.
+  - Added an (opt-in) processor in
+    ``log_outgoing_requests.structlog.ExtractRequestAndResponseDetails``. See the docs
+    for details.
+
+* [#48] Added support for async database logging - see the updated quickstart
+  documentation on how to apply this in your project.
+
+**Project maintenance**
+
+* Switched to trusted publishing to PyPI.
+* Switched project configuration to ``pyproject.toml``.
+* Replaced ``bump2version`` with ``bump-my-version``.
+* Cleaned up and simplified CI configuration.
+* Replaced black, isort and flake8 with Ruff.
+* Github actions usage is now pinned to commit hashes to protect against supply chain
+  attacks.
+* Removed obsoleted compatibility shims.
+
 0.7.1 (2025-12-09)
 ==================
 
