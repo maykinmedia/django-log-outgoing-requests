@@ -2,6 +2,15 @@
 Changelog
 =========
 
+0.9.0 (2026-04-09)
+==================
+
+Feature release.
+
+**New features**
+
+* [#2] Added pretty-printing / syntax highlighting to request and response bodies.
+
 0.8.0 (2026-04-08)
 ==================
 
