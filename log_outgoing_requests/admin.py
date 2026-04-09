@@ -1,14 +1,15 @@
+from copy import deepcopy
 from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import admin
-from django.utils.html import mark_safe
 from django.utils.translation import gettext as _
 
 from solo.admin import SingletonModelAdmin
 
 from .conf import settings
 from .models import OutgoingRequestsLog, OutgoingRequestsLogConfig
+from .syntax_highlighting import highlight_body
 
 try:
     import celery
@@ -37,7 +38,6 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "timestamp",
         "method",
         "query_params",
-        "prettify_body_response",
         "params",
         "req_headers",
         "req_content_type",
@@ -48,80 +48,126 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
         "res_content_type",
         "response_content_length",
         "response_body",
+        "raw_request_body",
+        "raw_response_body",
         "trace",
     )
 
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = [
-            (
-                _("Request"),
-                {
-                    "fields": (
-                        "method",
-                        "url",
-                        "timestamp",
-                        "query_params",
-                        "params",
-                        "req_headers",
-                        "req_content_type",
-                        "req_body_encoding",
-                        "request_body",
-                    )
-                },
-            ),
-            (
-                _("Response"),
-                {
-                    "fields": (
-                        "status_code",
-                        "response_ms",
-                        "res_headers",
-                        "res_content_type",
-                        "res_body_encoding",
-                        "response_content_length",
-                        "response_body",
-                    )
-                },
-            ),
-            (_("Extra"), {"fields": ("trace",)}),
-        ]
-
-        if obj and obj.supports_xml_or_json:
-            fieldsets[1][1]["fields"] += ("prettify_body_response",)
-
-        return fieldsets
+    fieldsets = [
+        (
+            _("Request"),
+            {
+                "fields": (
+                    "method",
+                    "url",
+                    "timestamp",
+                    "query_params",
+                    "params",
+                    "req_headers",
+                    "req_content_type",
+                    "req_body_encoding",
+                    "request_body",
+                ),
+                "description": _(
+                    "Details about the request made. Note that the formatted "
+                    "request body may have applied cosmetic changes - for "
+                    "debugging, consider looking at the raw bodies as well."
+                ),
+            },
+        ),
+        (
+            _("Response"),
+            {
+                "fields": (
+                    "status_code",
+                    "response_ms",
+                    "res_headers",
+                    "res_content_type",
+                    "res_body_encoding",
+                    "response_content_length",
+                    "response_body",
+                ),
+                "description": _(
+                    "Details about the received response. Note that the formatted "
+                    "response body may have applied cosmetic changes - for "
+                    "debugging, consider looking at the raw bodies as well."
+                ),
+            },
+        ),
+        (
+            _("Raw bodies"),
+            {
+                "fields": (
+                    "raw_request_body",
+                    "raw_response_body",
+                ),
+                "classes": ("collapse",),
+                "description": _(
+                    "The raw, unformatted bodies. These can help debugging syntax "
+                    "errors."
+                ),
+            },
+        ),
+        (_("Extra"), {"fields": ("trace",)}),
+    ]
 
     class Media:
         css = {
-            "all": ("log_outgoing_requests/css/admin.css",),
+            "all": (
+                "log_outgoing_requests/css/admin.css",
+                "log_outgoing_requests/css/highlight.css",
+            ),
         }
-        js = ("log_outgoing_requests/js/admin.js",)
 
     def has_add_permission(self, request):
         return False
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        config = OutgoingRequestsLogConfig.get_solo()
+        if not config.prettify_bodies:
+            # replace the pretty-printend/highlighted bodies fields with their raw
+            # equivalents
+            updated_fieldsets = []
+            for fieldset in fieldsets:
+                label, options = fieldset
+                updated_options = deepcopy(options)
+                fields = list(options.get("fields", []))
+
+                if "request_body" in fields:
+                    _req_body_index = fields.index("request_body")
+                    fields[_req_body_index] = "raw_request_body"
+
+                if "response_body" in fields:
+                    _resp_body_index = fields.index("response_body")
+                    fields[_resp_body_index] = "raw_response_body"
+
+                if fields:
+                    updated_options["fields"] = fields
+                updated_fieldsets.append((label, updated_options))
+
+            return updated_fieldsets
+        return fieldsets
 
     @admin.display(description=_("Query parameters"))
     def query_params(self, obj):
         return obj.query_params
 
     @admin.display(description=_("Request body"))
-    def request_body(self, obj) -> str:
-        return obj.request_body_decoded or "-"
+    def request_body(self, obj: OutgoingRequestsLog) -> str:
+        return highlight_body(obj.request_body_decoded, obj.req_content_type)
 
     @admin.display(description=_("Response body"))
-    def response_body(self, obj) -> str:
-        return obj.response_body_decoded or "-"
+    def response_body(self, obj: OutgoingRequestsLog) -> str:
+        return highlight_body(obj.response_body_decoded, obj.res_content_type)
 
-    def prettify_body_response(self, obj):
-        body_response = ""
-        if obj.supports_xml_or_json:
-            body_response = mark_safe(
-                '<a href="#" class="prettify-toggle-link">Prettify</a><br>\n'
-                '<textarea readonly class="prettify-output" style="display:none;"\n'
-                f" rows='15' cols='60' content-type='{obj.res_content_type}'>\n"
-                f"{obj.response_body_decoded}</textarea>"
-            )
-        return body_response
+    @admin.display(description=_("Request"))
+    def raw_request_body(self, obj: OutgoingRequestsLog) -> str:
+        return obj.request_body_decoded or "-"
+
+    @admin.display(description=_("Response"))
+    def raw_response_body(self, obj: OutgoingRequestsLog) -> str:
+        return obj.response_body_decoded or "-"
 
     def truncated_url(self, obj):
         parsed_url = urlparse(obj.url)

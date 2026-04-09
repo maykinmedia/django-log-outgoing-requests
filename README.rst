@@ -46,6 +46,12 @@ To install and develop the library locally, use:
 
     uv pip install -e .[tests,docs,release,celery]
 
+Before releasing, make sure the styles are up to date:
+
+.. code-block:: bash
+
+    python -m log_outgoing_requests.syntax_highlighting
+
 
 .. _`requests`: https://pypi.org/project/requests/
 

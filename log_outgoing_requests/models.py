@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from solo.models import SingletonModel  # type: ignore
+from solo.models import SingletonModel
 
 from .conf import settings
 from .config_reset import schedule_config_reset
@@ -132,10 +132,6 @@ class OutgoingRequestsLog(models.Model):
     def url_parsed(self):
         return urlparse(self.url)
 
-    @cached_property
-    def supports_xml_or_json(self):
-        return "xml" in self.res_content_type or "json" in self.res_content_type
-
     @property
     def query_params(self):
         return self.url_parsed.query
@@ -228,6 +224,14 @@ class OutgoingRequestsLogConfig(SingletonModel):
             "Additionally, depending on the broker that is used, if this duration is "
             "too long the key for the reset task might have expired before that time. "
             "So make sure not to set too large a value for the reset."
+        ),
+    )
+    prettify_bodies = models.BooleanField(
+        _("prettify bodies"),
+        default=True,
+        help_text=_(
+            "When enabled, request and response bodies for supported media formats "
+            "are pretty printed and have syntax highlighting applied to them."
         ),
     )
 

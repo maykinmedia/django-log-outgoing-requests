@@ -1,5 +1,6 @@
 """Tests for the admin interface"""
 
+from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 
@@ -8,6 +9,14 @@ import requests
 from pyquery import PyQuery
 
 from log_outgoing_requests.models import OutgoingRequestsLog, OutgoingRequestsLogConfig
+
+
+@pytest.fixture(autouse=True)
+def _clear_config_cache():
+    try:
+        yield
+    finally:
+        OutgoingRequestsLogConfig.clear_cache()
 
 
 #
@@ -37,6 +46,60 @@ def test_decoded_content_display(admin_client):
 
     assert request_body == "I'm a lumberjack and I'm okay."
     assert response_body == "I sleep all night and work all day."
+
+
+@pytest.mark.django_db
+def test_highlighted_bodies_shown_when_enabled_in_config(admin_client: Client):
+    config = OutgoingRequestsLogConfig.get_solo()
+    config.prettify_bodies = True
+    config.save()
+    log = OutgoingRequestsLog.objects.create(
+        id=1,
+        req_body=b"I'm a lumberjack and I'm okay.",
+        req_content_type="text/plain",
+        res_body=b"I sleep all night and work all day.",
+        res_content_type="text/plain",
+        timestamp=timezone.now(),
+    )
+    url = reverse(
+        "admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,)
+    )
+
+    response = admin_client.get(url)
+
+    assert response.status_code == 200
+    html = response.content.decode("utf-8")
+    doc = PyQuery(html)
+    highlighted_bodies = doc.find(".lor-http-body")
+    assert len(highlighted_bodies) == 2
+
+
+@pytest.mark.django_db
+def test_highlighted_bodies_replaced_when_highlighting_disabled_in_config(
+    admin_client: Client,
+):
+    config = OutgoingRequestsLogConfig.get_solo()
+    config.prettify_bodies = False
+    config.save()
+    log = OutgoingRequestsLog.objects.create(
+        id=1,
+        req_body=b"I'm a lumberjack and I'm okay.",
+        req_content_type="text/plain",
+        res_body=b"I sleep all night and work all day.",
+        res_content_type="text/plain",
+        timestamp=timezone.now(),
+    )
+    url = reverse(
+        "admin:log_outgoing_requests_outgoingrequestslog_change", args=(log.pk,)
+    )
+
+    response = admin_client.get(url)
+
+    assert response.status_code == 200
+    html = response.content.decode("utf-8")
+    doc = PyQuery(html)
+    highlighted_bodies = doc.find(".lor-http-body")
+    assert len(highlighted_bodies) == 0
 
 
 #
