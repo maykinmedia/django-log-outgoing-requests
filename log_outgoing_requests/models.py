@@ -226,6 +226,14 @@ class OutgoingRequestsLogConfig(SingletonModel):
             "So make sure not to set too large a value for the reset."
         ),
     )
+    prettify_bodies = models.BooleanField(
+        _("prettify bodies"),
+        default=True,
+        help_text=_(
+            "When enabled, request and response bodies for supported media formats "
+            "are pretty printed and have syntax highlighting applied to them."
+        ),
+    )
 
     class Meta:
         verbose_name = _("Outgoing request log configuration")

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from urllib.parse import urlparse
 
 from django import forms
@@ -120,6 +121,33 @@ class OutgoingRequestsLogAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        config = OutgoingRequestsLogConfig.get_solo()
+        if not config.prettify_bodies:
+            # replace the pretty-printend/highlighted bodies fields with their raw
+            # equivalents
+            updated_fieldsets = []
+            for fieldset in fieldsets:
+                label, options = fieldset
+                updated_options = deepcopy(options)
+                fields = list(options.get("fields", []))
+
+                if "request_body" in fields:
+                    _req_body_index = fields.index("request_body")
+                    fields[_req_body_index] = "raw_request_body"
+
+                if "response_body" in fields:
+                    _resp_body_index = fields.index("response_body")
+                    fields[_resp_body_index] = "raw_response_body"
+
+                if fields:
+                    updated_options["fields"] = fields
+                updated_fieldsets.append((label, updated_options))
+
+            return updated_fieldsets
+        return fieldsets
 
     @admin.display(description=_("Query parameters"))
     def query_params(self, obj):
