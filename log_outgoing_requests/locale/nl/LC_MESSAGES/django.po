@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 16:02+0100\n"
+"POT-Creation-Date: 2026-04-09 07:05-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Sergei Maertens <sergei@maykinmedia.nl>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,37 +18,67 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:57
+#: admin.py:58 admin.py:164
 msgid "Request"
 msgstr "Request"
 
-#: admin.py:73
+#: admin.py:72
+msgid ""
+"Details about the request made. Note that the formatted request body may "
+"have applied cosmetic changes - for debugging, consider looking at the raw "
+"bodies as well."
+msgstr ""
+"Details van het uitgaande verzoek. Merk op dat de opgemaakte verzoekinhoud kan "
+"aangepast zijn voor een mooiere weergave. Overweeg om ook de ruwe inhoud te bekijken "
+"wanneer je specifieke problemen onderzoekt."
+
+#: admin.py:79 admin.py:168
 msgid "Response"
 msgstr "Response"
 
-#: admin.py:86
+#: admin.py:91
+msgid ""
+"Details about the received response. Note that the formatted response body "
+"may have applied cosmetic changes - for debugging, consider looking at the "
+"raw bodies as well."
+msgstr ""
+"Details van het ontvangen antwoord. Merk op dat de opgemaakte antwoordinhoud kan "
+"aangepast zijn voor een mooiere weergave. Overweeg om ook de ruwe inhoud te bekijken "
+"wanneer je specifieke problemen onderzoekt."
+
+#: admin.py:98
+msgid "Raw bodies"
+msgstr "Ruwe inhoud"
+
+#: admin.py:106
+msgid "The raw, unformatted bodies. These can help debugging syntax errors."
+msgstr ""
+"De ruwe inhoud zonder formattering. Deze zijn nuttig voor het vaststellen van "
+"sommige problemen."
+
+#: admin.py:111
 msgid "Extra"
 msgstr "Overig"
 
-#: admin.py:103
+#: admin.py:152
 msgid "Query parameters"
 msgstr "Query parameters"
 
-#: admin.py:107 models.py:83 models.py:170
+#: admin.py:156 models.py:82 models.py:163
 msgid "Request body"
 msgstr "Request inhoud"
 
-#: admin.py:111 models.py:96 models.py:179
+#: admin.py:160 models.py:95 models.py:172
 msgid "Response body"
 msgstr "Response inhoud"
 
-#: admin.py:147
+#: admin.py:193
 #, python-brace-format
 msgid ""
 "Whether request logs should be saved to the database (default: {default})."
 msgstr "Sla request logs op in de database (standaardconfiguratie: {default})."
 
-#: admin.py:150
+#: admin.py:197
 #, python-brace-format
 msgid ""
 "Whether the body of the request and response should be logged (default: "
@@ -57,7 +87,7 @@ msgstr ""
 "Sla request- en response-inhoud op in de database (standaardconfiguratie: "
 "{default})."
 
-#: apps.py:7 models.py:127
+#: apps.py:7 models.py:126
 msgid "Outgoing request logs"
 msgstr "Uitgaande request-logs"
 
@@ -73,67 +103,67 @@ msgstr "Ja"
 msgid "No"
 msgstr "Nee"
 
-#: models.py:34
+#: models.py:33
 msgid "URL"
 msgstr "URL"
 
-#: models.py:35
+#: models.py:34
 msgid "The url of the outgoing request."
 msgstr "De URL waar de request heen gestuurd is."
 
-#: models.py:40
+#: models.py:39
 msgid "Hostname"
 msgstr "Hostnaam"
 
-#: models.py:42
+#: models.py:41
 msgid "The netloc/hostname part of the url."
 msgstr "De hostnaam (inclusief poort) van de URL."
 
-#: models.py:45
+#: models.py:44
 msgid "Parameters"
 msgstr "Parameters"
 
-#: models.py:47
+#: models.py:46
 msgid "The parameters (if they exist)."
 msgstr "Eventuele parameters."
 
-#: models.py:50
+#: models.py:49
 msgid "Status code"
 msgstr "HTTP-statuscode"
 
-#: models.py:53
+#: models.py:52
 msgid "The status code of the response."
 msgstr "De statuscode van de response."
 
-#: models.py:56
+#: models.py:55
 msgid "Method"
 msgstr "HTTP-methode"
 
-#: models.py:59
+#: models.py:58
 msgid "The type of request method."
 msgstr "Het soort HTTP request."
 
-#: models.py:64
+#: models.py:63
 msgid "Request content type"
 msgstr "Request content-type"
 
-#: models.py:66
+#: models.py:65
 msgid "The content type of the request."
 msgstr "Het HTTP Content-Type van de request."
 
-#: models.py:69
+#: models.py:68
 msgid "Request headers"
 msgstr "Request headers"
 
-#: models.py:69
+#: models.py:68
 msgid "The request headers."
 msgstr "De HTTP-headers van de request."
 
-#: models.py:72
+#: models.py:71
 msgid "Request encoding"
 msgstr "Request encoding"
 
-#: models.py:76
+#: models.py:75
 msgid ""
 "The encoding is either extracted from the Content-Type header or, if absent, "
 "taken from the default encoding configured for the content type. If the "
@@ -145,35 +175,35 @@ msgstr ""
 "request-inhoud niet goed weergegeven wordt, dan kan je een andere encoding "
 "proberen."
 
-#: models.py:83
+#: models.py:82
 msgid "The request body."
 msgstr "De content/body van de request."
 
-#: models.py:88
+#: models.py:87
 msgid "Response content type"
 msgstr "Response content-type"
 
-#: models.py:90
+#: models.py:89
 msgid "The content type of the response."
 msgstr "Het HTTP Content-Type van de response."
 
-#: models.py:93
+#: models.py:92
 msgid "Response headers"
 msgstr "Response headers"
 
-#: models.py:93
+#: models.py:92
 msgid "The response headers."
 msgstr "De HTTP-headers van de response."
 
-#: models.py:96
+#: models.py:95
 msgid "The response body."
 msgstr "De content/body van de response."
 
-#: models.py:99
+#: models.py:98
 msgid "Response encoding"
 msgstr "Response encoding"
 
-#: models.py:103
+#: models.py:102
 msgid ""
 "The encoding is either extracted from the Content-Type header or, if absent, "
 "taken from the default encoding configured for the content type. If the "
@@ -185,53 +215,53 @@ msgstr ""
 "response-inhoud niet goed weergegeven wordt, dan kan je een andere encoding "
 "proberen."
 
-#: models.py:110
+#: models.py:109
 msgid "Response in ms"
 msgstr "Duur in ms"
 
-#: models.py:112
+#: models.py:111
 msgid "This is the response time in ms."
 msgstr ""
 "De tijd dat het duurde tussen versturen van de request en ontvangen van de "
 "response, in ms."
 
-#: models.py:115
+#: models.py:114
 msgid "Timestamp"
 msgstr "Tijdstip"
 
-#: models.py:116
+#: models.py:115
 msgid "This is the date and time the API call was made."
 msgstr "Tijdstip wanneer de request gemaakt is."
 
-#: models.py:119
+#: models.py:118
 msgid "Trace"
 msgstr "Traceback"
 
-#: models.py:120
+#: models.py:119
 msgid "Text providing information in case of request failure."
 msgstr "Technische traceback indien er een crash was."
 
-#: models.py:126
+#: models.py:125
 msgid "Outgoing request log"
 msgstr "Uitgaand request logrecord"
 
-#: models.py:188
+#: models.py:181
 msgid "Response content length"
 msgstr "Response content grootte"
 
-#: models.py:202
+#: models.py:195
 msgid "Save logs to database"
 msgstr "Logs opslaan in de database"
 
-#: models.py:208
+#: models.py:201
 msgid "Save request + response body"
 msgstr "Sla de inhoud van request en/of response op in de database."
 
-#: models.py:214
+#: models.py:207
 msgid "Maximal content size"
 msgstr "Maximale content-grootte"
 
-#: models.py:218
+#: models.py:211
 msgid ""
 "The maximal size of the request/response content (in bytes). If 'Require "
 "content length' is not checked, this setting has no effect."
@@ -239,11 +269,11 @@ msgstr ""
 "De maximale grootte van de request/response-inhoud (in bytes). Inhoud die "
 "deze grootte overschrijdt, dan wordt de inhoud niet opgeslagen."
 
-#: models.py:223
+#: models.py:216
 msgid "Reset saving logs in database after"
 msgstr "Reset opslaan van logs in de database"
 
-#: models.py:228
+#: models.py:221
 msgid ""
 "If configured, after the config has been updated, reset the database logging "
 "after the specified number of minutes. Note: this overrides the "
@@ -260,6 +290,18 @@ msgstr ""
 "verlopen is voordat deze taak uitgevoerd is, dus kies een niet te grote "
 "waarde voor de reset."
 
-#: models.py:238
+#: models.py:230
+msgid "prettify bodies"
+msgstr "formatteer inhoud"
+
+#: models.py:233
+msgid ""
+"When enabled, request and response bodies for supported media formats are "
+"pretty printed and have syntax highlighting applied to them."
+msgstr ""
+"Indien ingeschakeld, dan wordt de inhoud van verzoeken en antwoorden mooier "
+"geformatteerd voor de berichttypen die dit ondersteunen."
+
+#: models.py:239
 msgid "Outgoing request log configuration"
 msgstr "Uitgaande request-logging configuratie"
