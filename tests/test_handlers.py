@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import queue
 import time
 from contextlib import nullcontext
 from unittest.mock import patch
@@ -16,6 +17,10 @@ from log_outgoing_requests.handlers import (
     outgoing_requests_handler_factory,
 )
 from log_outgoing_requests.models import OutgoingRequestsLog
+from log_outgoing_requests.typing import (
+    is_error_request_log_record,
+    is_request_log_record,
+)
 
 from .conftest import LogRecordEmitter
 
@@ -192,6 +197,48 @@ def _restore_logging_config(settings):
         yield
     finally:
         logging.config.dictConfig(settings.LOGGING)
+
+
+def test_queue_handler_plain_log_records():
+    # log record masquerading as request log record, but it's missing the request
+    # attributes
+    record = logging.LogRecord(
+        name="log_outgoing_requests",
+        level=logging.DEBUG,
+        pathname=__file__,
+        lineno=1,
+        msg="dummy",
+        args=None,
+        exc_info=None,
+    )
+    test_queue = queue.Queue(maxsize=1)
+    handler = QueueHandler(test_queue)
+
+    handler.handle(record)
+
+    with pytest.raises(queue.Empty):
+        test_queue.get_nowait()
+
+
+def test_queue_handler_request_exception_record_without_response(
+    log_record_emitter: LogRecordEmitter,
+):
+    log_record = log_record_emitter()
+    assert is_request_log_record(log_record)
+    log_record.request_exception = requests.RequestException(
+        request=log_record.req,
+        response=None,
+    )
+    del log_record.req
+    del log_record.res
+    assert is_error_request_log_record(log_record)
+    test_queue = queue.Queue(maxsize=1)
+    handler = QueueHandler(test_queue)
+
+    handler.handle(log_record)
+
+    queued_record = test_queue.get_nowait()
+    assert queued_record is log_record
 
 
 @pytest.mark.real_db_close

@@ -43,7 +43,6 @@ from requests import PreparedRequest, RequestException, Response
 from .conf import settings
 from .typing import (
     AnyLogRecord,
-    EventDict,
     is_any_request_log_record,
     is_error_request_log_record,
     is_request_log_record,
@@ -66,7 +65,7 @@ except ImportError:
     uwsgi = None
     postfork = lambda cb: None  # noqa: E731
 
-_queue: queue.Queue = queue.Queue[EventDict](maxsize=0)
+_queue: queue.Queue = queue.Queue[AnyLogRecord](maxsize=0)
 """
 Global queue singleton for the QueueHandler and QueueListener to communicate.
 

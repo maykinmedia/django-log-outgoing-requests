@@ -74,7 +74,6 @@ class LogRecordEmitter:
             args=None,
             exc_info=None,
         )
-        record._is_log_outgoing_requests = True
         prepared_request = Request(
             method=method, url=url, headers=headers, params=params, data=data
         ).prepare()
