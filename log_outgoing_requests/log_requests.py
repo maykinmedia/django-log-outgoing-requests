@@ -14,19 +14,20 @@ def hook_requests_logging(response: Response, *args, **kwargs):
         extra={
             "req": response.request,
             "res": response,
+            "stream": kwargs.get("stream", False),
         },
     )
 
 
 @contextmanager
-def log_errors():
+def log_errors(*, stream: bool):
     try:
         yield
     except RequestException as exc:
         logger.debug(
             "outgoing_request_errored",
             exc_info=exc,
-            extra={"request_exception": exc},
+            extra={"request_exception": exc, "stream": stream},
         )
         raise
 
@@ -47,7 +48,7 @@ def install_outgoing_requests_logging():
     def new_request(self, *args, **kwargs):
         if hook_requests_logging not in self.hooks["response"]:
             self.hooks["response"].append(hook_requests_logging)
-        with log_errors():
+        with log_errors(stream=kwargs.get("stream", False)):
             return self._lor_initial_request(*args, **kwargs)
 
     Session.request = new_request

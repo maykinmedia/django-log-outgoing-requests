@@ -44,7 +44,7 @@ def test_properly_emit_exception_logs(prepared_request, minimal_settings, caplog
     formatter = HttpFormatter()
 
     with pytest.raises(RequestException):
-        with log_errors():
+        with log_errors(stream=False):
             raise RequestException("Something went wrong!", request=prepared_request)
 
     assert len(caplog.records) == 1

@@ -16,6 +16,10 @@ class RequestLogRecord(logging.LogRecord):
 
     req: PreparedRequest
     res: Response
+    stream: bool
+    """
+    Captured value of the ``request(url, stream=...)`` kwarg.
+    """
 
 
 class ErrorRequestLogRecord(logging.LogRecord):
@@ -24,6 +28,10 @@ class ErrorRequestLogRecord(logging.LogRecord):
     """
 
     request_exception: RequestException
+    stream: bool
+    """
+    Captured value of the ``request(url, stream=...)`` kwarg.
+    """
 
 
 AnyLogRecord = logging.LogRecord | RequestLogRecord | ErrorRequestLogRecord

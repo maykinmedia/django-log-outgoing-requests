@@ -203,15 +203,14 @@ class QueueHandler(_QueueHandler):
         # if we have a response, ensure that the content is consumed before the log
         # record it's queued to the background thread. See #58 for details.
         if response is not None:
-            # # fishy, private-ish API, but otherwise no reliable detection :(
-            # _is_streaming = response.raw is not None
-            # # streaming response are typically not something you want to see in logs
-            # # because they're used for large responses that would consume excessive
-            # # memory.
-            # # TODO: add marker to avoid hitting response.content in downstream code so
-            # # that we can still log metadata
-            # if _is_streaming:
-            #     return False
+            # streaming response are typically not something you want to see in logs
+            # because they're used for large responses that would consume excessive
+            # memory.
+            # TODO: add marker to avoid hitting response.content in downstream code so
+            # that we can still log metadata
+            is_streaming = record.stream
+            if is_streaming:
+                return False
 
             # consume the content in the main thread so that the underlying
             # socket is not consumed from multiple places (this is the part that is not
