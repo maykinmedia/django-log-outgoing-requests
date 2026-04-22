@@ -168,11 +168,59 @@ def _stop_listener():
 
 class QueueHandler(_QueueHandler):
     """
-    Keep the raw log record.
+    Keep the raw log record and drop streaming responses.
 
     The stdlib implementation by default formats the log record to a string and clears
     most attributes to make them pickleable.
     """
+
+    def filter(self, record: AnyLogRecord) -> bool | logging.LogRecord:
+        """
+        Prevent unconsumed response bodies from being passed to the actual handler.
+
+        The response body must be consumed in the main thread to avoid thread-safety
+        issues when reading GZIP'ed responses in multiple threads, especially with
+        chunked transfer encodings where there's no content-length header available
+        where we check the size of `response.content` to decide if we can save the body
+        to the database or not.
+        """
+
+        # if it's not a log record produced by us, don't even bother sending it up the
+        # queue
+        if not is_any_request_log_record(record):
+            return False
+
+        response: Response | None = None
+
+        if is_request_log_record(record):
+            # we have a response - this is the 'happy' flow (connectivity is okay)
+            response = record.res
+        elif is_error_request_log_record(record):
+            # we have an requests-specific exception
+            exception = record.request_exception
+            response = exception.response  # likely None
+
+        # if we have a response, ensure that the content is consumed before the log
+        # record it's queued to the background thread. See #58 for details.
+        if response is not None:
+            # # fishy, private-ish API, but otherwise no reliable detection :(
+            # _is_streaming = response.raw is not None
+            # # streaming response are typically not something you want to see in logs
+            # # because they're used for large responses that would consume excessive
+            # # memory.
+            # # TODO: add marker to avoid hitting response.content in downstream code so
+            # # that we can still log metadata
+            # if _is_streaming:
+            #     return False
+
+            # consume the content in the main thread so that the underlying
+            # socket is not consumed from multiple places (this is the part that is not
+            # thread-safe). Consumption of the content is supposed to happen in this
+            # (main) thread anyway, assuming that requests aren't just made without
+            # checking the response content.
+            _ = response.content
+
+        return super().filter(record)
 
     def prepare(self, record: logging.LogRecord):
         return record
