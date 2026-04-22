@@ -242,3 +242,65 @@ def test_integration_via_logging_dictconfig(
     assert OutgoingRequestsLog.objects.count() == 1
     log_obj = OutgoingRequestsLog.objects.get()
     assert log_obj.url == request_mock_kwargs["url"]
+
+
+@pytest.mark.real_db_close
+@pytest.mark.django_db(transaction=True)
+def test_logging_of_gzipped_response_is_thread_safe(
+    settings,
+    monkeypatch: pytest.MonkeyPatch,
+    _restore_logging_config,
+):
+    # Make sure to spin up the docker-compose.yml in the root of the repository, as a
+    # live HTTP service is required:
+    #
+    #   docker compose up
+    #
+    settings.LOG_OUTGOING_REQUESTS_HANDLER_USE_QUEUE = True
+    settings.LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 1024**3  # 1 MiB
+    monkeypatch.setenv("_LOG_OUTGOING_REQUESTS_LOGGER_DEFER_LISTENER", "false")
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "handlers": {
+                "log_outgoing_requests": {
+                    "level": "DEBUG",
+                    "()": (
+                        "log_outgoing_requests.handlers"
+                        ".outgoing_requests_handler_factory"
+                    ),
+                    "buffer_size": 1,  # force immediate flush
+                    "flush_interval": 1,
+                },
+            },
+            "loggers": {
+                "log_outgoing_requests": {
+                    "handlers": ["log_outgoing_requests"],
+                    "level": "DEBUG",
+                    "propagate": False,
+                }
+            },
+        }
+    )
+    assert get_listener() is not None
+
+    def _make_gzip_request():
+        response = requests.get("http://localhost:8080/gzip.txt")
+        assert response.headers["Transfer-Encoding"] == "chunked"
+        assert response.headers["Content-Encoding"] == "gzip"
+        assert "Content-Length" not in response.headers
+        # consume the body
+        assert len(response.content) > 0
+
+    # this errors reliably-enough with a large enough response body, see the docker
+    # compose config
+    _make_gzip_request()
+
+    _queue.join()
+
+    assert OutgoingRequestsLog.objects.count() == 1
+    log_obj = OutgoingRequestsLog.objects.get()
+    assert log_obj.url == "http://localhost:8080/gzip.txt"
+    assert log_obj.response_content_length > 0
+    assert b"abcdefghijklmnopqrstuvwxyz0123456789" in log_obj.res_body
