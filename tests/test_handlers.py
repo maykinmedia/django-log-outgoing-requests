@@ -244,6 +244,7 @@ def test_integration_via_logging_dictconfig(
     assert log_obj.url == request_mock_kwargs["url"]
 
 
+@pytest.mark.live_http
 @pytest.mark.real_db_close
 @pytest.mark.django_db(transaction=True)
 def test_logging_of_gzipped_response_is_thread_safe(
@@ -306,6 +307,7 @@ def test_logging_of_gzipped_response_is_thread_safe(
     assert b"abcdefghijklmnopqrstuvwxyz0123456789" in log_obj.res_body
 
 
+@pytest.mark.live_http
 @pytest.mark.real_db_close
 @pytest.mark.django_db(transaction=True)
 def test_logging_of_gzipped_response_with_streaming_is_skipped_to_avoid_memory_impact(

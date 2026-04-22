@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: |
           docker compose up -d
-          tox
+          tox -- -m ""
           docker compose down
         env:
           PYTHON_VERSION: ${{ matrix.python }}
