@@ -191,14 +191,6 @@ def test_handler_calls_on_error_callback_if_provided(
     assert len(errors_seen) == 1
 
 
-@pytest.fixture
-def _restore_logging_config(settings):
-    try:
-        yield
-    finally:
-        logging.config.dictConfig(settings.LOGGING)
-
-
 def test_queue_handler_plain_log_records():
     # log record masquerading as request log record, but it's missing the request
     # attributes
@@ -241,18 +233,10 @@ def test_queue_handler_request_exception_record_without_response(
     assert queued_record is log_record
 
 
-@pytest.mark.real_db_close
-@pytest.mark.django_db(transaction=True)
-def test_integration_via_logging_dictconfig(
-    settings,
-    monkeypatch: pytest.MonkeyPatch,
-    requests_mock,
-    request_mock_kwargs,
-    _restore_logging_config,
-):
+@pytest.fixture
+def enable_background_thread_logging(settings, monkeypatch: pytest.MonkeyPatch):
     settings.LOG_OUTGOING_REQUESTS_HANDLER_USE_QUEUE = True
     monkeypatch.setenv("_LOG_OUTGOING_REQUESTS_LOGGER_DEFER_LISTENER", "false")
-    requests_mock.get(**request_mock_kwargs)
     logging.config.dictConfig(
         {
             "version": 1,
@@ -278,6 +262,24 @@ def test_integration_via_logging_dictconfig(
         }
     )
     assert get_listener() is not None
+
+    try:
+        yield
+    finally:
+        # restore original config
+        logging.config.dictConfig(settings.LOGGING)
+
+
+@pytest.mark.real_db_close
+@pytest.mark.django_db(transaction=True)
+def test_integration_via_logging_dictconfig(
+    settings,
+    monkeypatch: pytest.MonkeyPatch,
+    requests_mock,
+    request_mock_kwargs,
+    enable_background_thread_logging,
+):
+    requests_mock.get(**request_mock_kwargs)
 
     requests.get(
         request_mock_kwargs["url"],
@@ -297,41 +299,14 @@ def test_integration_via_logging_dictconfig(
 def test_logging_of_gzipped_response_is_thread_safe(
     settings,
     monkeypatch: pytest.MonkeyPatch,
-    _restore_logging_config,
+    enable_background_thread_logging,
 ):
     # Make sure to spin up the docker-compose.yml in the root of the repository, as a
     # live HTTP service is required:
     #
     #   docker compose up
     #
-    settings.LOG_OUTGOING_REQUESTS_HANDLER_USE_QUEUE = True
     settings.LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 1024**3  # 1 MiB
-    monkeypatch.setenv("_LOG_OUTGOING_REQUESTS_LOGGER_DEFER_LISTENER", "false")
-    logging.config.dictConfig(
-        {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "handlers": {
-                "log_outgoing_requests": {
-                    "level": "DEBUG",
-                    "()": (
-                        "log_outgoing_requests.handlers"
-                        ".outgoing_requests_handler_factory"
-                    ),
-                    "buffer_size": 1,  # force immediate flush
-                    "flush_interval": 1,
-                },
-            },
-            "loggers": {
-                "log_outgoing_requests": {
-                    "handlers": ["log_outgoing_requests"],
-                    "level": "DEBUG",
-                    "propagate": False,
-                }
-            },
-        }
-    )
-    assert get_listener() is not None
 
     def _make_gzip_request():
         response = requests.get("http://localhost:8080/gzip.txt")
@@ -360,41 +335,14 @@ def test_logging_of_gzipped_response_is_thread_safe(
 def test_logging_of_gzipped_response_with_streaming_is_skipped_to_avoid_memory_impact(
     settings,
     monkeypatch: pytest.MonkeyPatch,
-    _restore_logging_config,
+    enable_background_thread_logging,
 ):
     # Make sure to spin up the docker-compose.yml in the root of the repository, as a
     # live HTTP service is required:
     #
     #   docker compose up
     #
-    settings.LOG_OUTGOING_REQUESTS_HANDLER_USE_QUEUE = True
     settings.LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 1024**3  # 1 MiB
-    monkeypatch.setenv("_LOG_OUTGOING_REQUESTS_LOGGER_DEFER_LISTENER", "false")
-    logging.config.dictConfig(
-        {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "handlers": {
-                "log_outgoing_requests": {
-                    "level": "DEBUG",
-                    "()": (
-                        "log_outgoing_requests.handlers"
-                        ".outgoing_requests_handler_factory"
-                    ),
-                    "buffer_size": 1,  # force immediate flush
-                    "flush_interval": 1,
-                },
-            },
-            "loggers": {
-                "log_outgoing_requests": {
-                    "handlers": ["log_outgoing_requests"],
-                    "level": "DEBUG",
-                    "propagate": False,
-                }
-            },
-        }
-    )
-    assert get_listener() is not None
 
     def _make_streaming_request():
         # make a request in streaming mode and validate that the content can be consumed
