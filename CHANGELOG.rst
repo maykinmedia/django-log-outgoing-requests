@@ -2,6 +2,17 @@
 Changelog
 =========
 
+0.9.1 (2026-04-23)
+==================
+
+Bugfix release.
+
+* [#58] Fixed crash in application and logging code when logging bodies of
+  gzipped/multi-chunk responses.
+* [#58] Fixed the response body content being loaded in memory for streawing responses.
+* [#58] Fixed metadata (content type, encoding) of response bodies not being logged if
+  persistence/logging of the response body is skipped.
+
 0.9.0 (2026-04-09)
 ==================
 
