@@ -64,6 +64,7 @@ class LogRecordEmitter:
         params: Mapping[str, str] = {"queryParam": "one"},
         data: bytes | Mapping[str, str] | None = None,
         response_status: int = 200,
+        stream: bool = False,
     ) -> RequestLogRecord | ErrorRequestLogRecord:
         record = logging.LogRecord(
             name="log_outgoing_requests",
@@ -74,7 +75,6 @@ class LogRecordEmitter:
             args=None,
             exc_info=None,
         )
-        record._is_log_outgoing_requests = True
         prepared_request = Request(
             method=method, url=url, headers=headers, params=params, data=data
         ).prepare()
@@ -91,6 +91,7 @@ class LogRecordEmitter:
 
         record.req = prepared_request
         record.res = response
+        record.stream = stream
         assert is_request_log_record(record)
         return record
 

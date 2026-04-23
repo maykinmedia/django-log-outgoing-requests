@@ -32,7 +32,10 @@ jobs:
         run: pip install tox tox-gh-actions
 
       - name: Run tests
-        run: tox
+        run: |
+          docker compose up -d
+          tox -- -m ""
+          docker compose down
         env:
           PYTHON_VERSION: ${{ matrix.python }}
           DJANGO: ${{ matrix.django }}

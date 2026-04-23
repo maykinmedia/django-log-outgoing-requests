@@ -101,12 +101,35 @@ def test_too_large_bodies_are_not_emitted(log_record_emitter: LogRecordEmitter):
 
     updated_event_dict = processor(logger, "debug", event_dict)
 
-    assert "req_content_type" not in updated_event_dict
-    assert "req_encoding" not in updated_event_dict
+    assert "req_content_type" in updated_event_dict
+    assert "req_encoding" in updated_event_dict
     assert "req_body" not in updated_event_dict
-    assert "resp_content_type" not in updated_event_dict
-    assert "resp_encoding" not in updated_event_dict
+    assert "resp_content_type" in updated_event_dict
+    assert "resp_encoding" in updated_event_dict
     assert "resp_body" not in updated_event_dict
+
+
+def test_streaming_response_bodies_are_not_emitted(
+    log_record_emitter: LogRecordEmitter,
+):
+    log_record = log_record_emitter(
+        method="POST",
+        data=rb"{\"key\": 3}",
+        headers={"Content-Type": "application/json"},
+        stream=True,
+    )
+    event_dict = _make_event_dict(log_record)
+    processor = ExtractRequestAndResponseDetails(extract_bodies=True)
+
+    updated_event_dict = processor(logger, "debug", event_dict)
+
+    assert updated_event_dict["req_content_type"] == "application/json"
+    assert updated_event_dict["req_encoding"] == "utf-8"
+    assert updated_event_dict["req_body"] == rb"{\"key\": 3}"
+    assert updated_event_dict["resp_content_type"] == "text/plain"
+    assert updated_event_dict["resp_encoding"] == "utf-8"
+    assert "resp_body" not in updated_event_dict
+    assert updated_event_dict["resp_body_streaming"] is True
 
 
 def test_extracts_from_errored_requests(log_record_emitter: LogRecordEmitter):

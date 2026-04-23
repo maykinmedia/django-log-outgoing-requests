@@ -17,15 +17,22 @@ logger = logging.getLogger(__name__)
 type HttpObj = PreparedRequest | Response
 
 
-def process_body(http_obj: HttpObj, config: OutgoingRequestsLogConfig) -> ProcessedBody:
+def process_body(
+    http_obj: HttpObj,
+    config: OutgoingRequestsLogConfig,
+    is_stream: bool = False,
+) -> ProcessedBody:
     """
     Process a request or response body by parsing the meta information.
     """
     content_type, encoding = parse_content_type_header(http_obj)
     if not encoding:
         encoding = get_default_encoding(content_type)
-    allow_persisting = check_content_type(content_type) and check_content_length(
-        http_obj, config=config
+    # never allow persisting/consumption of the request.content for streamed responses
+    allow_persisting = (
+        not is_stream
+        and check_content_type(content_type)
+        and check_content_length(http_obj, config=config)
     )
     content = _get_body(http_obj) if allow_persisting else b""
 

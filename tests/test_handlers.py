@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import queue
 import time
 from contextlib import nullcontext
 from unittest.mock import patch
@@ -16,6 +17,10 @@ from log_outgoing_requests.handlers import (
     outgoing_requests_handler_factory,
 )
 from log_outgoing_requests.models import OutgoingRequestsLog
+from log_outgoing_requests.typing import (
+    is_error_request_log_record,
+    is_request_log_record,
+)
 
 from .conftest import LogRecordEmitter
 
@@ -186,26 +191,52 @@ def test_handler_calls_on_error_callback_if_provided(
     assert len(errors_seen) == 1
 
 
-@pytest.fixture
-def _restore_logging_config(settings):
-    try:
-        yield
-    finally:
-        logging.config.dictConfig(settings.LOGGING)
+def test_queue_handler_plain_log_records():
+    # log record masquerading as request log record, but it's missing the request
+    # attributes
+    record = logging.LogRecord(
+        name="log_outgoing_requests",
+        level=logging.DEBUG,
+        pathname=__file__,
+        lineno=1,
+        msg="dummy",
+        args=None,
+        exc_info=None,
+    )
+    test_queue = queue.Queue(maxsize=1)
+    handler = QueueHandler(test_queue)
+
+    handler.handle(record)
+
+    with pytest.raises(queue.Empty):
+        test_queue.get_nowait()
 
 
-@pytest.mark.real_db_close
-@pytest.mark.django_db(transaction=True)
-def test_integration_via_logging_dictconfig(
-    settings,
-    monkeypatch: pytest.MonkeyPatch,
-    requests_mock,
-    request_mock_kwargs,
-    _restore_logging_config,
+def test_queue_handler_request_exception_record_without_response(
+    log_record_emitter: LogRecordEmitter,
 ):
+    log_record = log_record_emitter()
+    assert is_request_log_record(log_record)
+    log_record.request_exception = requests.RequestException(
+        request=log_record.req,
+        response=None,
+    )
+    del log_record.req
+    del log_record.res
+    assert is_error_request_log_record(log_record)
+    test_queue = queue.Queue(maxsize=1)
+    handler = QueueHandler(test_queue)
+
+    handler.handle(log_record)
+
+    queued_record = test_queue.get_nowait()
+    assert queued_record is log_record
+
+
+@pytest.fixture
+def enable_background_thread_logging(settings, monkeypatch: pytest.MonkeyPatch):
     settings.LOG_OUTGOING_REQUESTS_HANDLER_USE_QUEUE = True
     monkeypatch.setenv("_LOG_OUTGOING_REQUESTS_LOGGER_DEFER_LISTENER", "false")
-    requests_mock.get(**request_mock_kwargs)
     logging.config.dictConfig(
         {
             "version": 1,
@@ -232,6 +263,24 @@ def test_integration_via_logging_dictconfig(
     )
     assert get_listener() is not None
 
+    try:
+        yield
+    finally:
+        # restore original config
+        logging.config.dictConfig(settings.LOGGING)
+
+
+@pytest.mark.real_db_close
+@pytest.mark.django_db(transaction=True)
+def test_integration_via_logging_dictconfig(
+    settings,
+    monkeypatch: pytest.MonkeyPatch,
+    requests_mock,
+    request_mock_kwargs,
+    enable_background_thread_logging,
+):
+    requests_mock.get(**request_mock_kwargs)
+
     requests.get(
         request_mock_kwargs["url"],
         headers=request_mock_kwargs["request_headers"],
@@ -242,3 +291,83 @@ def test_integration_via_logging_dictconfig(
     assert OutgoingRequestsLog.objects.count() == 1
     log_obj = OutgoingRequestsLog.objects.get()
     assert log_obj.url == request_mock_kwargs["url"]
+
+
+@pytest.mark.live_http
+@pytest.mark.real_db_close
+@pytest.mark.django_db(transaction=True)
+def test_logging_of_gzipped_response_is_thread_safe(
+    settings,
+    monkeypatch: pytest.MonkeyPatch,
+    enable_background_thread_logging,
+):
+    # Make sure to spin up the docker-compose.yml in the root of the repository, as a
+    # live HTTP service is required:
+    #
+    #   docker compose up
+    #
+    settings.LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 1024**3  # 1 MiB
+
+    def _make_gzip_request():
+        response = requests.get("http://localhost:8080/gzip.txt")
+        assert response.headers["Transfer-Encoding"] == "chunked"
+        assert response.headers["Content-Encoding"] == "gzip"
+        assert "Content-Length" not in response.headers
+        # consume the body
+        assert len(response.content) > 0
+
+    # this errors reliably-enough with a large enough response body, see the docker
+    # compose config
+    _make_gzip_request()
+
+    _queue.join()
+
+    assert OutgoingRequestsLog.objects.count() == 1
+    log_obj = OutgoingRequestsLog.objects.get()
+    assert log_obj.url == "http://localhost:8080/gzip.txt"
+    assert log_obj.response_content_length > 0
+    assert b"abcdefghijklmnopqrstuvwxyz0123456789" in log_obj.res_body
+
+
+@pytest.mark.live_http
+@pytest.mark.real_db_close
+@pytest.mark.django_db(transaction=True)
+def test_logging_of_gzipped_response_with_streaming_is_skipped_to_avoid_memory_impact(
+    settings,
+    monkeypatch: pytest.MonkeyPatch,
+    enable_background_thread_logging,
+):
+    # Make sure to spin up the docker-compose.yml in the root of the repository, as a
+    # live HTTP service is required:
+    #
+    #   docker compose up
+    #
+    settings.LOG_OUTGOING_REQUESTS_MAX_CONTENT_LENGTH = 1024**3  # 1 MiB
+
+    def _make_streaming_request():
+        # make a request in streaming mode and validate that the content can be consumed
+        response = requests.get("http://localhost:8080/gzip.txt", stream=True)
+        assert response.status_code == 200
+        assert response.headers["Transfer-Encoding"] == "chunked"
+        assert response.headers["Content-Encoding"] == "gzip"
+        assert "Content-Length" not in response.headers
+
+        # consume the body
+        num_chunks = 0
+        for _ in response.iter_content(chunk_size=1024 * 8):  # 8 KiB chunks
+            num_chunks += 1
+
+        assert num_chunks > 0
+
+    # this errors reliably-enough with a large enough response body, see the docker
+    # compose config
+    _make_streaming_request()
+
+    _queue.join()
+
+    # we do expect the metadata to be logged, but no body to be logged
+    assert OutgoingRequestsLog.objects.count() == 1
+    log_obj = OutgoingRequestsLog.objects.get()
+    assert log_obj.url == "http://localhost:8080/gzip.txt"
+    assert not log_obj.response_content_length
+    assert log_obj.res_body == b""

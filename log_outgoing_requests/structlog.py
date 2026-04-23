@@ -36,6 +36,9 @@ class ExtractRequestAndResponseDetails:
       well. Additionally, the ``LOG_OUTGOING_REQUESTS_CONTENT_TYPES`` setting is
       checked for an allow-list of content types to log. Be careful when you enable
       this, as it can quickly explode your log storage.
+
+      Note that bodies from streaming responses (e.g.
+      ``requests.get(url, stream=True)``) are never extracted.
     :param body_max_content_length: If body extraction is enabled, this parameter
       controls the maximum size of bodies to be logged. Bodies that are larger will not
       be added to the event dict.
@@ -91,7 +94,7 @@ class ExtractRequestAndResponseDetails:
                     **self._process_headers(response.headers, "resp"),
                 }
             )
-            self._add_body_details(event_dict, response)
+            self._add_body_details(event_dict, response, is_stream=record.stream)
 
         return event_dict
 
@@ -121,6 +124,7 @@ class ExtractRequestAndResponseDetails:
         self,
         event_dict: EventDict,
         http_obj: PreparedRequest | Response,
+        is_stream: bool = False,
     ) -> None:
         from .models import OutgoingRequestsLogConfig
         from .utils import process_body
@@ -135,12 +139,15 @@ class ExtractRequestAndResponseDetails:
         config = OutgoingRequestsLogConfig(
             max_content_length=self.body_max_content_length
         )
-        body_details = process_body(http_obj, config)
+        body_details = process_body(http_obj, config, is_stream=is_stream)
+        event_dict.update(
+            {
+                f"{direction}_content_type": body_details.content_type,
+                f"{direction}_encoding": body_details.encoding,
+            }
+        )
         if content := body_details.content:
-            event_dict.update(
-                {
-                    f"{direction}_content_type": body_details.content_type,
-                    f"{direction}_encoding": body_details.encoding,
-                    f"{direction}_body": content,
-                }
-            )
+            event_dict[f"{direction}_body"] = content
+
+        if is_stream:
+            event_dict[f"{direction}_body_streaming"] = True

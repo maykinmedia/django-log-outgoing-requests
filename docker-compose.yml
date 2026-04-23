@@ -1,0 +1,53 @@
+---
+
+# Compose file to support unit tests, where requests are recorded with vcr.py.
+
+services:
+  # simple nginx service that returns a fixed gzipped response
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        cat >/etc/nginx/nginx.conf <<'EOF'
+        worker_processes  1;
+
+        events {
+          worker_connections  1024;
+        }
+
+        http {
+          include       /etc/nginx/mime.types;
+          default_type  application/octet-stream;
+          sendfile      on;
+
+          gzip on;
+          gzip_min_length 1;
+          gzip_types text/plain application/json;
+          gzip_vary off;
+          gzip_http_version 1.1;
+
+          server {
+            listen 80;
+            server_name _;
+
+            chunked_transfer_encoding on;
+
+            location = /gzip.txt {
+              root /usr/share/nginx/html;
+              default_type text/plain;
+            }
+          }
+        }
+        EOF
+
+        # Generate a body that's not huge, but large enough to make streaming/races
+        # more likely than with a tiny response. requests reads chunks of 10KiB
+        for i in $(seq 1 12000); do
+          echo "abcdefghijklmnopqrstuvwxyz0123456789 / line $$i" >> /usr/share/nginx/html/gzip.txt
+        done
+
+        exec nginx -g 'daemon off;'
