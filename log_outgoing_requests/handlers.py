@@ -198,19 +198,15 @@ class QueueHandler(_QueueHandler):
             # we have an requests-specific exception
             exception = record.request_exception
             response = exception.response  # likely None
+        else:  # pragma: no cover
+            logger.debug("Received log record that cannot be handled %r", record)
+            return False
 
         # if we have a response, ensure that the content is consumed before the log
         # record it's queued to the background thread. See #58 for details.
-        if response is not None:
-            # streaming response are typically not something you want to see in logs
-            # because they're used for large responses that would consume excessive
-            # memory.
-            # TODO: add marker to avoid hitting response.content in downstream code so
-            # that we can still log metadata
-            is_streaming = record.stream
-            if is_streaming:
-                return False
-
+        # Note that we must take care not to load the entire body of a response into
+        # memory if the user requested response streaming.
+        if response is not None and not record.stream:
             # consume the content in the main thread so that the underlying
             # socket is not consumed from multiple places (this is the part that is not
             # thread-safe). Consumption of the content is supposed to happen in this
@@ -357,7 +353,9 @@ class DatabaseOutgoingRequestsHandler(logging.Handler):
             if (
                 response is not None
                 and (
-                    processed_response_body := process_body(response, config)
+                    processed_response_body := process_body(
+                        response, config, is_stream=record.stream
+                    )
                 ).allow_saving_to_db
             ):
                 kwargs.update(

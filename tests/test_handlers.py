@@ -365,4 +365,9 @@ def test_logging_of_gzipped_response_with_streaming_is_skipped_to_avoid_memory_i
 
     _queue.join()
 
-    assert OutgoingRequestsLog.objects.exists() is False
+    # we do expect the metadata to be logged, but no body to be logged
+    assert OutgoingRequestsLog.objects.count() == 1
+    log_obj = OutgoingRequestsLog.objects.get()
+    assert log_obj.url == "http://localhost:8080/gzip.txt"
+    assert not log_obj.response_content_length
+    assert log_obj.res_body == b""
