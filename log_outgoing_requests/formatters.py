@@ -38,7 +38,9 @@ def format_request(req: PreparedRequest) -> str:
     )
 
 
-def format_response(resp: Response):
+def format_response(resp: Response, stream: bool = False):
+    from .conf import settings
+
     template = textwrap.dedent(
         """
         ---------------- response ----------------
@@ -47,10 +49,13 @@ def format_response(resp: Response):
 
     """
     )
+    # Accessing ``resp.content`` reads the entire body into memory, so only do that when
+    # the body is emitted, and never for streamed responses.
+    emit_body = settings.LOG_OUTGOING_REQUESTS_EMIT_BODY and not stream
     return template.format(
         resp=resp,
         reshdrs=format_headers(resp.headers),
-        response_body=format_body(resp.content, "Response"),
+        response_body=format_body(resp.content, "Response") if emit_body else "",
     )
 
 
@@ -96,7 +101,8 @@ class HttpFormatter(logging.Formatter):
     def _formatMessageWithResponse(self, record: RequestLogRecord) -> str:
         assert record.req is not None
         assert record.res is not None
-        return f"{format_request(record.req)}\n{format_response(record.res)}"
+        response = format_response(record.res, stream=record.stream)
+        return f"{format_request(record.req)}\n{response}"
 
     def formatMessage(self, record):
         result = super().formatMessage(record)

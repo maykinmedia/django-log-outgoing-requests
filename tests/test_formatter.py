@@ -1,5 +1,6 @@
 """Tests for the HttpFormatter helper class"""
 
+import io
 import logging
 
 import pytest
@@ -61,3 +62,27 @@ def test_formatter_non_requests_exception(caplog, minimal_settings):
     formatter = HttpFormatter()
     res = formatter.formatMessage(record)
     assert "-- error --" not in res
+
+
+@pytest.mark.parametrize(
+    "log_body, stream",
+    [
+        (False, False),
+        (False, True),
+        (True, True),
+    ],
+)
+def test_formatter_does_not_read_response_body(
+    log_record_emitter, settings, log_body, stream
+):
+    settings.LOG_OUTGOING_REQUESTS_EMIT_BODY = log_body
+    record = log_record_emitter(stream=stream)
+    # an unread response body, as with ``requests.get(url, stream=True)``
+    record.res._content = False
+    record.res.raw = io.BytesIO(b"streamed body")
+
+    res = HttpFormatter().format(record)
+
+    assert "200 OK" in res
+    assert "streamed body" not in res
+    assert record.res.raw.tell() == 0
